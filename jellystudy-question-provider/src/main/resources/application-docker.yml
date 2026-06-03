@@ -1,0 +1,65 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+spring:
+  application:
+    name: jellystudy-question-provider
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/jellystudy}
+      auto-index-creation: true
+  redis:
+    host: ${SPRING_REDIS_HOST:localhost}
+    port: ${SPRING_REDIS_PORT:6379}
+    password:
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+      shutdown-timeout: 100ms
+  zipkin:
+    base-url: http://zipkin:9411
+    enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+dubbo:
+  application:
+    name: jellystudy-question-provider-${INSTANCE_NAME:default}
+  protocol:
+    name: dubbo
+    port: ${DUBBO_PORT:20882}
+  registry:
+    address: nacos://${NACOS_HOST:nacos}:${NACOS_PORT:8848}
+  scan:
+    base-packages: com.jellystudy.provider.service
+  provider:
+    timeout: 5000
+    retries: 0
+
+# Redis缓存配置（支持Nacos配置中心覆盖）
+redis:
+  cache:
+    question-ttl: ${REDIS_QUESTION_TTL:3600}
+    hot-question-ttl: ${REDIS_HOT_QUESTION_TTL:1800}
+    ranking-size: ${REDIS_RANKING_SIZE:20}
+    hot-question-size: ${REDIS_HOT_QUESTION_SIZE:50}
+    enabled: ${REDIS_ENABLED:true}
+
+# 实例信息（用于区分不同实例）
+instance:
+  name: ${INSTANCE_NAME:question-provider-default}
+  hostname: ${HOSTNAME:localhost}

@@ -1,0 +1,278 @@
+version: '3.8'
+
+services:
+  # ==================== Redis 缓存服务 ====================
+  redis:
+    image: redis:7-alpine
+    container_name: jellystudy-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jellystudy-network
+
+  # ==================== MongoDB 数据库服务 ====================
+  mongodb:
+    image: mongo:7
+    container_name: jellystudy-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: jellystudy
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jellystudy-network
+
+  # ==================== Nacos 注册中心/配置中心 ====================
+  nacos:
+    image: nacos/nacos-server:v2.1.0
+    container_name: jellystudy-nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: embedded
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8848/nacos/"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - jellystudy-network
+
+  # ==================== RabbitMQ 消息队列 ====================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: jellystudy-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - jellystudy-network
+
+  # ==================== 知识点服务 ====================
+  knowledge-point-provider:
+    build:
+      context: ./jellystudy-knowledge-point-provider
+      dockerfile: Dockerfile
+    image: jellystudy/knowledge-point-provider:latest
+    container_name: knowledge-point-provider
+    ports:
+      - "20881:20881"
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - DUBBO_PORT=20881
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jellystudy
+      - NACOS_HOST=nacos
+      - NACOS_PORT=8848
+      - INSTANCE_NAME=knowledge-point-provider
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - jellystudy-network
+
+  # ==================== 问题服务 - 实例1 ====================
+  question-provider-1:
+    build:
+      context: ./jellystudy-question-provider
+      dockerfile: Dockerfile
+    image: jellystudy/question-provider:latest
+    container_name: question-provider-1
+    ports:
+      - "20882:20882"
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - DUBBO_PORT=20882
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jellystudy
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - NACOS_HOST=nacos
+      - NACOS_PORT=8848
+      - NACOS_CONFIG_SERVER_ADDR=nacos:8848
+      - INSTANCE_NAME=question-provider-1
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - jellystudy-network
+
+  # ==================== 问题服务 - 实例2 (负载均衡) ====================
+  question-provider-2:
+    build:
+      context: ./jellystudy-question-provider
+      dockerfile: Dockerfile
+    image: jellystudy/question-provider:latest
+    container_name: question-provider-2
+    ports:
+      - "20883:20882"
+      - "8083:8082"
+    environment:
+      - SERVER_PORT=8083
+      - DUBBO_PORT=20883
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jellystudy
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - NACOS_HOST=nacos
+      - NACOS_PORT=8848
+      - NACOS_CONFIG_SERVER_ADDR=nacos:8848
+      - INSTANCE_NAME=question-provider-2
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - jellystudy-network
+
+  # ==================== AI评价服务 ====================
+  evaluation-service:
+    build:
+      context: ./jellystudy-evaluation-service
+      dockerfile: Dockerfile
+    image: jellystudy/evaluation-service:latest
+    container_name: evaluation-service
+    ports:
+      - "20884:20884"
+      - "8084:8084"
+    environment:
+      - SERVER_PORT=8084
+      - DUBBO_PORT=20884
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/jellystudy
+      - NACOS_HOST=nacos
+      - NACOS_PORT=8848
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-sk-6f978b89ecf044dca3b753df0284f8ee}
+      - INSTANCE_NAME=evaluation-service
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - jellystudy-network
+
+  # ==================== Web前端应用 ====================
+  jellystudy-web:
+    build:
+      context: ./jellystudy-web
+      dockerfile: Dockerfile
+    image: jellystudy/web:latest
+    container_name: jellystudy-web
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - NACOS_HOST=nacos
+      - NACOS_PORT=8848
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+      - INSTANCE_NAME=jellystudy-web
+      - JAVA_OPTS=-Xms256m -Xmx512m -Dspring.redis.host=redis -Dspring.redis.port=6379 -Dspring.data.redis.host=redis -Dspring.data.redis.port=6379 -Dspring.rabbitmq.host=rabbitmq -Dspring.rabbitmq.port=5672
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      question-provider-1:
+        condition: service_started
+      question-provider-2:
+        condition: service_started
+      knowledge-point-provider:
+        condition: service_started
+      evaluation-service:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - jellystudy-network
+
+# ==================== 网络配置 ====================
+networks:
+  jellystudy-network:
+    driver: bridge
+    name: jellystudy-network
+
+# ==================== 数据卷配置 ====================
+volumes:
+  redis-data:
+    driver: local
+    name: jellystudy-redis-data
+  mongodb-data:
+    driver: local
+    name: jellystudy-mongodb-data
+  rabbitmq-data:
+    driver: local
+    name: jellystudy-rabbitmq-data

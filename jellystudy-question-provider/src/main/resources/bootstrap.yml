@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: jellystudy-question-provider
+  cloud:
+    nacos:
+      config:
+        server-addr: ${NACOS_CONFIG_SERVER_ADDR:localhost:8848}
+        namespace: public
+        group: JELLYSTUDY_GROUP
+        file-extension: yaml
+        shared-configs:
+          - data-id: common-redis.yaml
+            group: JELLYSTUDY_GROUP
+            refresh: true
+          - data-id: common-cache.yaml
+            group: JELLYSTUDY_GROUP
+            refresh: true
+        extension-configs:
+          - data-id: question-provider-custom.yaml
+            group: JELLYSTUDY_GROUP
+            refresh: true
+
+# Nacos配置发现（用于读取配置中心的配置）
+config:
+  enabled: true
+  refresh-enabled: true

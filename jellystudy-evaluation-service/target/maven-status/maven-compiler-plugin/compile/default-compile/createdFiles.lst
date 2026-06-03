@@ -1,0 +1,4 @@
+com\jellystudy\evaluation\repository\EvaluationRepository.class
+com\jellystudy\evaluation\service\DeepSeekClient.class
+com\jellystudy\evaluation\EvaluationServiceApplication.class
+com\jellystudy\evaluation\service\EvaluationServiceImpl.class

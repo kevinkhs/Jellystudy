@@ -1,0 +1,60 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: jellystudy-question-provider
+  config:
+    import: "optional:nacos:jellystudy-question-provider.yaml"
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+      discovery:
+        server-addr: localhost:8848
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/jellystudy
+      auto-index-creation: true
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+      shutdown-timeout: 100ms
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
+
+dubbo:
+  application:
+    name: jellystudy-question-provider
+  protocol:
+    name: dubbo
+    port: 20882
+  registry:
+    address: nacos://localhost:8848
+  scan:
+    base-packages: com.jellystudy.provider.service
+  provider:
+    timeout: 5000
+    retries: 0
+
+# Redis缓存配置
+redis:
+  cache:
+    question-ttl: 3600        # 问题详情缓存时间（秒）
+    hot-question-ttl: 1800   # 热点问题缓存时间（秒）
+    ranking-size: 20         # 排行榜大小
+    hot-question-size: 50    # 热点问题数量
+    enabled: true            # 是否启用Redis缓存（设为false可禁用）

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: jellystudy-web
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_CONFIG_SERVER_ADDR:nacos:8848}
+      config:
+        server-addr: ${NACOS_CONFIG_SERVER_ADDR:nacos:8848}
+        file-extension: yaml
+        group: DEFAULT_GROUP

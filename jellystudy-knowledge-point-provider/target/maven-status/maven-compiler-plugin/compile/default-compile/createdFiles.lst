@@ -1,0 +1,3 @@
+com\jellystudy\provider\KnowledgePointProviderApplication.class
+com\jellystudy\provider\repository\KnowledgePointRepository.class
+com\jellystudy\provider\service\KnowledgePointServiceImpl.class

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${question.title}">问题详情</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               background-color: #f5f5f5; color: #333; line-height: 1.6; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
+        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
+        .nav a:hover { opacity: 0.8; }
+        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-bottom: 20px; margin-top:30px;}
+        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
+                   padding-bottom: 10px; }
+        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
+               border-radius: 4px; font-size: 13px; margin-right: 8px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
+               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
+               transition: background 0.3s; font-size: 14px; }
+        .btn:hover { background: #5568d3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 5px;
+                       font-size: 14px; transition: border-color 0.3s; box-sizing: border-box; }
+        textarea.form-control { min-height: 120px; resize: vertical; }
+        .answer-item, .comment-item { background: #f9f9f9; padding: 15px; border-radius: 6px;
+                                      margin-top: 12px; border-left: 3px solid #667eea; }
+        .comment-item { border-left-color: #28a745; margin-left: 20px; margin-top: 8px; }
+        .like-count { color: #dc3545; font-weight: bold; }
+        .alert { padding: 12px 18px; border-radius: 5px; margin-bottom: 15px; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        form { display: inline; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="container">
+        <h1>🎓 JellyStudy - 知识问答系统</h1>
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/question/list">问题列表</a>
+            <a href="/question/create">提问</a>
+            <a href="/knowledge/list">知识点管理</a>
+            <a href="/question/statistics">统计信息</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="alert alert-error" th:if="${param.error != null}">
+        <span th:text="${param.error[0]}"></span>
+    </div>
+
+    <div class="card">
+        <h2>📝 <span th:text="${question.title}">问题标题</span></h2>
+
+        <div style="margin-bottom:15px;">
+            <span class="tag" th:text="${question.knowledgePointTitle}">知识点</span>
+            <span style="color:#999; margin-left:15px;">👤<span th:text="${question.author}">作者</span></span>
+            <span style="color:#999; margin-left:15px;">📅<span th:text="${#temporals.format(question.createTime, 'yyyy-MM-dd HH:mm')}">时间</span></span>
+        </div>
+
+        <div style="line-height:1.8; color:#555; background:#f9f9f9; padding:20px; border-radius:6px;
+             margin-bottom:20px;" th:text="${question.content}">
+            问题内容
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; padding-bottom:15px; border-bottom:2px solid #f0f0f0; flex-wrap:wrap;">
+            <span>👁️<span th:text="${question.viewCount}">0</span> 浏览</span>
+            <span>❤️<span class="like-count" th:text="${question.likeCount}">0"></span> 赞</span>
+            <span>💬<span th:text="${question.answerCount}">0"></span> 回答</span>
+            <form th:action="@{/question/{id}/like(id=${question.id})}" method="post">
+                <input type="hidden" name="userId" value="user_001"/>
+                <button type="submit" class="btn btn-sm btn-success">👍 点赞</button>
+            </form>
+            <a th:href="@{/question/{id}/edit(id=${question.id})}" class="btn btn-sm">编辑</a>
+            <a th:href="@{/question/{id}/delete(id=${question.id})}" class="btn btn-sm btn-danger"
+               onclick="return confirm('确定要删除这个问题吗？');">删除</a>
+        </div>
+
+        <div style="margin-top:25px;">
+            <h3 style="margin-bottom:20px;">💬 回答 (<span th:text="${question.answers.size()}">0</span>)</h3>
+
+            <form th:action="@{/question/{id}/answer(id=${question.id})}" method="post"
+                  style="background:#f9f9f9; padding:20px; border-radius:8px; margin-bottom:25px;">
+                <div class="form-group">
+                    <textarea name="content" class="form-control" required
+                              placeholder="写下你的回答..." style="min-height:120px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="author" class="form-control" required
+                           placeholder="你的昵称" style="max-width:300px;"/>
+                </div>
+                <button type="submit" class="btn btn-success">✓ 提交回答</button>
+            </form>
+
+            <div th:if="${question.answers != null and !question.answers.isEmpty()}">
+                <div class="answer-item" th:each="answer : ${question.answers}">
+                    <div style="font-weight:600; margin-bottom:8px;">
+                        👤 <span th:text="${answer.author}">回答者</span>
+                        <span style="color:#999; font-size:13px; font-weight:normal; margin-left:10px;"
+                              th:text="${#temporals.format(answer.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                    </div>
+                    <p style="line-height:1.7; color:#555; margin-bottom:12px; white-space:pre-wrap;"
+                       th:text="${answer.content}">
+                        回答内容
+                    </p>
+                    <div style="display:flex; gap:10px; align-items:center; font-size:13px; flex-wrap:wrap;">
+                        <span>❤️<span class="like-count" th:text="${answer.likeCount}">0"></span></span>
+                        <form th:action="@{/question/{qid}/answer/{aid}/like(qid=${question.id}, aid=${answer.id})}"
+                              method="post">
+                            <input type="hidden" name="userId" value="user_001"/>
+                            <button type="submit" class="btn btn-sm btn-success">点赞</button>
+                        </form>
+                        <a th:href="@{/question/{qid}/answer/{aid}/update(qid=${question.id}, aid=${answer.id})}"
+                           class="btn btn-sm">编辑</a>
+                        <a th:href="@{/question/{qid}/answer/{aid}/delete(qid=${question.id}, aid=${answer.id})}"
+                           class="btn btn-sm btn-danger"
+                           onclick="return confirm('确定删除这个回答吗？');">删除</a>
+                    </div>
+
+                    <div th:if="${answer.comments != null and !answer.comments.isEmpty()}" style="margin-top:15px;">
+                        <h4 style="font-size:14px; color:#666; margin-bottom:10px;">💭 评论</h4>
+                        <div class="comment-item" th:each="comment : ${answer.comments}">
+                            <div style="font-size:13px; font-weight:600; margin-bottom:5px;">
+                                👤 <span th:text="${comment.author}">评论者</span>
+                                <span style="color:#999; font-weight:normal; margin-left:8px;"
+                                      th:text="${#temporals.format(comment.createTime, 'MM-dd HH:mm')}">时间</span>
+                            </div>
+                            <p style="font-size:13px; line-height:1.6; color:#666; margin-bottom:8px;"
+                               th:text="${comment.content}">评论内容</p>
+                            <div style="font-size:12px; display:flex; gap:8px; flex-wrap:wrap;">
+                                <span>❤️<span th:text="${comment.likeCount}">0"></span></span>
+                                <a th:href="@{/question/{qid}/answer/{aid}/comment/{cid}/update
+                                   (qid=${question.id}, aid=${answer.id}, cid=${comment.id})}"
+                                   class="btn btn-sm" style="padding:4px 10px; font-size:12px;">编辑</a>
+                                <a th:href="@{/question/{qid}/answer/{aid}/comment/{cid}/delete
+                                   (qid=${question.id}, aid=${answer.id}, cid=${comment.id})}"
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('确定删除这个评论吗？');"
+                                   style="padding:4px 10px; font-size:12px;">删除</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/question/{qid}/answer/{aid}/comment
+                         (qid=${question.id}, aid=${answer.id})}" method="post"
+                          style="margin-top:12px; background:#fff; padding:12px; border-radius:6px;
+                                 border:1px solid #e0e0e0;">
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <input type="text" name="content" class="form-control" required
+                                   placeholder="添加评论..." style="flex:1; min-width:200px;"/>
+                            <input type="text" name="author" class="form-control" required
+                                   placeholder="昵称" style="width:120px;"/>
+                            <button type="submit" class="btn btn-sm btn-success">评论</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div th:unless="${question.answers != null and !question.answers.isEmpty()}"
+                 style="text-align:center; color:#999; padding:40px;">
+                暂无回答，快来第一个回答吧！
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

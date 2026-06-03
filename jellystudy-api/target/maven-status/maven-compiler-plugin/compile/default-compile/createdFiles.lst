@@ -1,0 +1,9 @@
+com\jellystudy\api\service\EvaluationService.class
+com\jellystudy\api\service\QuestionService.class
+com\jellystudy\api\entity\Comment.class
+com\jellystudy\api\entity\KnowledgePoint.class
+com\jellystudy\api\service\KnowledgePointService.class
+com\jellystudy\api\entity\Answer.class
+com\jellystudy\api\entity\Like.class
+com\jellystudy\api\entity\Question.class
+com\jellystudy\api\entity\Evaluation.class

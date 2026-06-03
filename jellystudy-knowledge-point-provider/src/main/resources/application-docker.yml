@@ -1,0 +1,33 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: jellystudy-knowledge-point-provider
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/jellystudy}
+      auto-index-creation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+dubbo:
+  application:
+    name: jellystudy-knowledge-point-provider-${INSTANCE_NAME:default}
+  protocol:
+    name: dubbo
+    port: ${DUBBO_PORT:20881}
+  registry:
+    address: nacos://${NACOS_HOST:nacos}:${NACOS_PORT:8848}
+  scan:
+    base-packages: com.jellystudy.provider.service
+  provider:
+    timeout: 5000
+    retries: 0

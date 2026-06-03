@@ -1,0 +1,38 @@
+server:
+  port: ${SERVER_PORT:8084}
+
+spring:
+  application:
+    name: jellystudy-evaluation-service
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/jellystudy}
+      auto-index-creation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+dubbo:
+  application:
+    name: jellystudy-evaluation-service-${INSTANCE_NAME:default}
+  protocol:
+    name: dubbo
+    port: ${DUBBO_PORT:20884}
+  registry:
+    address: nacos://${NACOS_HOST:nacos}:${NACOS_PORT:8848}
+  scan:
+    base-packages: com.jellystudy.evaluation.service
+  provider:
+    timeout: 30000
+    retries: 0
+
+deepseek:
+  api-key: ${DEEPSEEK_API_KEY:sk-6f978b89ecf044dca3b753df0284f8ee}
+  api-url: ${DEEPSEEK_API_URL:https://api.deepseek.com/v1/chat/completions}
+  model: deepseek-chat

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JellyStudy - 首页</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               background-color: #f5f5f5; color: #333; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
+        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
+        .nav a:hover { opacity: 0.8; }
+        .main-content { margin-top: 30px; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-bottom: 20px; }
+        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
+                   padding-bottom: 10px; }
+        .question-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.3s; }
+        .question-item:hover { background: #f9f9f9; border-radius: 4px; padding-left: 10px; padding-right: 10px; }
+        .question-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; line-height: 1.4; }
+        .question-meta { font-size: 13px; color: #999; display: flex; gap: 15px; flex-wrap: wrap; }
+        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
+               border-radius: 4px; font-size: 13px; margin-right: 8px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
+               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
+               transition: background 0.3s; font-size: 14px; }
+        .btn:hover { background: #5568d3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .like-count { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="container">
+        <h1>🎓 JellyStudy - 知识问答系统</h1>
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/question/list">问题列表</a>
+            <a href="/question/create">提问</a>
+            <a href="/knowledge/list">知识点管理</a>
+            <a href="/question/statistics">统计信息</a>
+        </div>
+    </div>
+</div>
+
+<div class="main-content container">
+    <div>
+        <div class="card">
+            <h2>📝 最新问题</h2>
+            <div th:if="${latestQuestions != null and !latestQuestions.isEmpty()}">
+                <div class="question-item" th:each="q : ${latestQuestions}">
+                    <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
+                        <div class="question-title" th:text="${q.title}">问题标题</div>
+                        <div class="question-meta">
+                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
+                            <span th:if="${q.author != null}" th:text="${q.author}">作者</span>
+                            <span th:if="${q.createTime != null}" th:text="${#temporals.format(q.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                            <span>👁️<span th:text="${q.viewCount != null ? q.viewCount : 0}">0"></span></span>
+                            <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
+                            <span>💬<span th:text="${q.answerCount != null ? q.answerCount : 0}">0"></span></span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div th:unless="${latestQuestions != null and !latestQuestions.isEmpty()}">
+                <p style="text-align:center; color:#999; padding:30px;">暂无问题，快来提问吧！</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔥 热门问题</h2>
+            <div th:if="${hotQuestions != null and !hotQuestions.isEmpty()}">
+                <div class="question-item" th:each="q : ${hotQuestions}">
+                    <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
+                        <div class="question-title" th:text="${q.title}">问题标题</div>
+                        <div class="question-meta">
+                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
+                            <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
+                            <span>👁️<span th:text="${q.viewCount != null ? q.viewCount : 0}">0"></span></span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="card">
+            <h2>📚 热门知识点</h2>
+            <div th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}">
+                <div class="question-item" th:each="kp : ${knowledgePoints}">
+                    <a th:href="@{/question/knowledge-point/{id}(id=${kp.id})}"
+                       style="text-decoration:none; color:inherit;">
+                        <div class="question-title" th:text="${kp.title != null ? kp.title : '未命名'}">知识点标题</div>
+                        <div class="question-meta">
+                            <span class="tag" th:if="${kp.category != null}" th:text="${kp.category}">分类</span>
+                            <span>📋<span th:text="${kp.questionCount != null ? kp.questionCount : 0}">0</span> 个问题</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <h2>🚀 快速开始</h2>
+            <p style="margin-bottom:15px; color:#666;">开始你的学习之旅</p>
+            <a href="/question/create" class="btn btn-success" style="width:100%; margin-bottom:10px;">📝 提问</a>
+            <a href="/knowledge/list" class="btn" style="width:100%;">📚 浏览知识点</a>
+        </div>
+    </div>
+</div>
+
+<!-- 智能助手悬浮窗组件 -->
+<div th:replace="fragments/assistant-widget :: assistant-widget"></div>
+
+<!-- 智能助手JavaScript（外部文件） -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script th:src="@{/js/assistant.js}"></script>
+
+</body>
+</html>

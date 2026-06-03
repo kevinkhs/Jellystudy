@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑知识点</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               background-color: #f5f5f5; color: #333; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
+        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
+        .nav a:hover { opacity: 0.8; }
+        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                margin-top:30px;}
+        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
+                   padding-bottom: 10px; }
+        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
+               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
+               transition: background 0.3s; font-size: 14px; }
+        .btn:hover { background: #5568d3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 5px;
+                       font-size: 14px; transition: border-color 0.3s; box-sizing: border-box; }
+        textarea.form-control { min-height: 150px; resize: vertical; }
+        select.form-control { height: 42px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="container">
+        <h1>🎓 JellyStudy - 知识问答系统</h1>
+        <div class="nav">
+            <a href="/">首页</a>
+            <a href="/question/list">问题列表</a>
+            <a href="/question/create">提问</a>
+            <a href="/knowledge/list">知识点管理</a>
+            <a href="/question/statistics">统计信息</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>✏️ 编辑知识点</h2>
+        <form th:action="@{/knowledge/{id}/update(id=${knowledgePoint.id})}" method="post">
+            <div class="form-group">
+                <label>知识点标题</label>
+                <input type="text" name="title" class="form-control" required
+                       th:value="${knowledgePoint.title}"/>
+            </div>
+            <div class="form-group">
+                <label>分类</label>
+                <select name="category" class="form-control" required>
+                    <option value="后端开发" th:selected="${knowledgePoint.category == '后端开发'}">后端开发</option>
+                    <option value="前端开发" th:selected="${knowledgePoint.category == '前端开发'}">前端开发</option>
+                    <option value="数据库" th:selected="${knowledgePoint.category == '数据库'}">数据库</option>
+                    <option value="DevOps" th:selected="${knowledgePoint.category == 'DevOps'}">DevOps</option>
+                    <option value="算法" th:selected="${knowledgePoint.category == '算法'}">算法</option>
+                    <option value="其他" th:selected="${knowledgePoint.category == '其他'}">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea name="description" class="form-control"
+                          style="min-height:150px;" th:text="${knowledgePoint.description}"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">✓ 保存修改</button>
+            <a th:href="@{/knowledge/{id}(id=${knowledgePoint.id})}" class="btn"
+               style="margin-left:10px;">取消</a>
+        </form>
+    </div>
+</div>
+</body>
+</html>

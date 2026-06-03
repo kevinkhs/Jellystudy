@@ -1,0 +1,30 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: jellystudy
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/jellystudy
+      database: jellystudy
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+# Dubbo 配置（第二部分使用）
+dubbo:
+  application:
+    name: jellystudy-provider
+  registry:
+    address: nacos://localhost:8848
+  protocol:
+    name: dubbo
+    port: 20880
+
+logging:
+  level:
+    com.jellystudy: DEBUG

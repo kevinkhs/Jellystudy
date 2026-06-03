@@ -1,0 +1,492 @@
+<!-- 智能助手悬浮窗组件 -->
+<div id="ai-assistant-widget" th:fragment="assistant-widget">
+    <!-- 悬浮按钮 -->
+    <div id="assistant-toggle" onclick="toggleAssistant()" title="AI助手" style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 15px rgba(102,126,234,0.4);transition:all 0.3s ease;position:relative;overflow:hidden;">
+        <img class="assistant-icon" th:src="@{/images/lgs.webp}" alt="AI助手" style="width:48px;height:48px;object-fit:contain;animation:bounce 2s infinite;">
+        <div class="assistant-badge" id="assistant-badge" style="display: none;">0</div>
+    </div>
+
+    <!-- 主面板 -->
+    <div id="assistant-panel" style="display: none;">
+        <!-- 头部 -->
+        <div class="panel-header">
+            <div class="header-left">
+                <span class="header-title">🤖 博识尊 - AI助手</span>
+            </div>
+            <div class="header-right">
+                <button class="tab-btn active" onclick="switchTab('chat')" data-tab="chat">💬 对话</button>
+                <button class="tab-btn" onclick="switchTab('knowledge')" data-tab="knowledge">📚 知识图谱</button>
+                <button class="close-btn" onclick="toggleAssistant()">✕</button>
+            </div>
+        </div>
+
+        <!-- 对话标签页 -->
+        <div id="tab-chat" class="tab-content active">
+            <div id="chat-messages" class="chat-messages">
+                <div class="message assistant-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>你好！我是<strong>博识尊</strong>，JellyStudy的AI学习助手。我可以：</p>
+                        <ul style="margin: 8px 0; padding-left: 20px;">
+                            <li>回答学术和技术问题</li>
+                            <li>解释复杂概念</li>
+                            <li>提供学习建议</li>
+                        </ul>
+                        <p>有什么可以帮助你的吗？😊</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <textarea id="user-input" placeholder="输入你的问题..."
+                         onkeydown="handleKeyDown(event)" rows="2"></textarea>
+                <button id="send-btn" onclick="sendMessage()">
+                    <span class="send-text">发送</span>
+                    <span class="send-loading" style="display: none;">⏳</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 知识图谱标签页 -->
+        <div id="tab-knowledge" class="tab-content" style="display: none;">
+            <div class="knowledge-header">
+                <h4>📌 我感兴趣的知识点</h4>
+                <div class="knowledge-actions">
+                    <button class="action-btn primary" onclick="generateKnowledgeGraph()">
+                        🗺️ 生成图谱
+                    </button>
+                    <button class="action-btn danger" onclick="clearAllInterests()">
+                        🗑️ 清空列表
+                    </button>
+                </div>
+            </div>
+
+            <div id="interested-points-list" class="points-list">
+                <div class="empty-state">
+                    <p>📭 还没有标记任何知识点</p>
+                    <p class="hint">在问题详情页点击"📌 标记感兴趣"按钮来添加</p>
+                </div>
+            </div>
+
+            <div id="graph-container" class="graph-container" style="display: none;">
+                <div class="graph-header">
+                    <h4>🗺️ 知识图谱</h4>
+                    <button class="close-graph-btn" onclick="closeGraph()">✕ 关闭</button>
+                </div>
+                <div id="graph-canvas" class="graph-canvas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#ai-assistant-widget {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 10000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#assistant-toggle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#assistant-toggle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.assistant-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.assistant-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4444;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+#assistant-panel {
+    position: absolute;
+    bottom: 75px;
+    right: 0;
+    width: 400px;
+    max-height: 600px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tab-btn {
+    padding: 6px 14px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    font-weight: 600;
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: transform 0.2s;
+}
+
+.close-btn:hover {
+    transform: scale(1.2);
+}
+
+.tab-content {
+    display: none;
+    height: 500px;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.chat-messages {
+    padding: 20px;
+    min-height: 380px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.user-message .message-avatar {
+    background: #667eea;
+}
+
+.assistant-message .message-avatar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.message-content {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.6;
+    font-size: 14px;
+    color: #333;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.message-content p {
+    margin: 4px 0;
+}
+
+.message-content ul {
+    margin: 8px 0;
+}
+
+.message-content strong {
+    color: #667eea;
+}
+
+.user-message .message-content strong {
+    color: #fff;
+}
+
+.chat-input-area {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    background: #fafafa;
+}
+
+#user-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    resize: none;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+#user-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+#send-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+#send-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+#send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.knowledge-header {
+    padding: 20px 20px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.knowledge-header h4 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 15px;
+}
+
+.knowledge-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.danger {
+    background: #fee;
+    color: #dc3545;
+}
+
+.action-btn.danger:hover {
+    background: #fcc;
+}
+
+.points-list {
+    padding: 20px;
+    min-height: 200px;
+}
+
+.point-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid #667eea;
+    animation: fadeIn 0.3s ease;
+}
+
+.point-item .point-info {
+    flex: 1;
+}
+
+.point-item .point-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.point-item .point-time {
+    font-size: 12px;
+    color: #999;
+}
+
+.remove-point-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px 8px;
+    transition: transform 0.2s;
+}
+
+.remove-point-btn:hover {
+    transform: scale(1.2);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.empty-state .hint {
+    font-size: 13px;
+    color: #bbb;
+}
+
+.graph-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 10;
+}
+
+.graph-header {
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.graph-header h4 {
+    margin: 0;
+    font-size: 15px;
+}
+
+.close-graph-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.close-graph-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.graph-canvas {
+    height: calc(100% - 60px);
+    background: #fafafa;
+}
+</style>

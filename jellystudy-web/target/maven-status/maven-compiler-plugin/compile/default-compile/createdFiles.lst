@@ -1,0 +1,11 @@
+com\jellystudy\web\service\AIMessageConsumer.class
+com\jellystudy\web\service\AssistantCacheService.class
+com\jellystudy\web\controller\HomeController.class
+com\jellystudy\web\controller\QuestionController.class
+com\jellystudy\web\dto\AIResponseMessage.class
+com\jellystudy\web\dto\AIRequestMessage.class
+com\jellystudy\web\JellyStudyWebApplication.class
+com\jellystudy\web\config\RabbitMQConfig.class
+com\jellystudy\web\controller\AssistantController.class
+com\jellystudy\web\service\AIMessageProducer.class
+com\jellystudy\web\controller\KnowledgePointController.class

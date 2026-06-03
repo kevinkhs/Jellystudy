@@ -1,0 +1,11 @@
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\controller\KnowledgePointController.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\dto\AIRequestMessage.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\controller\HomeController.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\controller\AssistantController.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\JellyStudyWebApplication.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\controller\QuestionController.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\config\RabbitMQConfig.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\service\AIMessageProducer.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\dto\AIResponseMessage.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\service\AssistantCacheService.java
+C:\onlywork\jellystudy\jellystudy-web\src\main\java\com\jellystudy\web\service\AIMessageConsumer.java

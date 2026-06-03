@@ -1,0 +1,35 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: jellystudy-evaluation-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/jellystudy
+      auto-index-creation: true
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+  sleuth:
+    sampler:
+      probability: 1.0
+
+dubbo:
+  application:
+    name: jellystudy-evaluation-service
+  protocol:
+    name: dubbo
+    port: 20883
+  registry:
+    address: nacos://localhost:8848
+  scan:
+    base-packages: com.jellystudy.evaluation.service
+  provider:
+    timeout: 30000
+    retries: 0
+
+deepseek:
+  api-key: sk-6f978b89ecf044dca3b753df0284f8ee
+  api-url: https://api.deepseek.com/v1/chat/completions
+  model: deepseek-chat
