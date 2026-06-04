@@ -136,6 +136,7 @@ public class AssistantCacheService {
     }
 
     private static final String AI_RESPONSE_PREFIX = "assistant:response:";
+    private static final String KP_CLICK_PREFIX = "assistant:kp-click:";
 
     public void saveAIResponse(String sessionId, String requestId, AIResponseMessage response) {
         try {
@@ -144,9 +145,11 @@ public class AssistantCacheService {
 
             redisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
 
-            logger.debug("保存AI响应到Redis: sessionId={}, requestId={}", sessionId, requestId);
+            logger.info("AI响应已保存到Redis: key={}, responseLength={}", key, json.length());
         } catch (JsonProcessingException e) {
             logger.error("序列化AI响应失败", e);
+        } catch (Exception e) {
+            logger.error("保存AI响应到Redis失败: sessionId={}, requestId={}", sessionId, requestId, e);
         }
     }
 
@@ -177,5 +180,50 @@ public class AssistantCacheService {
     public void removeAIResponse(String sessionId, String requestId) {
         String key = AI_RESPONSE_PREFIX + sessionId + ":" + requestId;
         redisTemplate.delete(key);
+    }
+
+    /* ========== 知识点点击计数 ========== */
+
+    /**
+     * 记录知识点点击，返回当前点击次数
+     */
+    public long recordKnowledgePointClick(String kpId, String kpTitle) {
+        String key = KP_CLICK_PREFIX + kpId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        // 设置7天过期
+        redisTemplate.expire(key, 7, TimeUnit.DAYS);
+        // 同时保存标题
+        redisTemplate.opsForValue().set(KP_CLICK_PREFIX + kpId + ":title", kpTitle, 7, TimeUnit.DAYS);
+        logger.info("记录知识点点击: kpId={}, kpTitle={}, count={}", kpId, kpTitle, count);
+        return count != null ? count : 0;
+    }
+
+    /**
+     * 获取所有点击过的知识点及其点击次数
+     */
+    public List<Map<String, Object>> getKnowledgePointClickStats() {
+        Set<String> keys = redisTemplate.keys(KP_CLICK_PREFIX + "*");
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        if (keys != null) {
+            for (String key : keys) {
+                if (key.endsWith(":title")) continue;
+                String kpId = key.substring(KP_CLICK_PREFIX.length());
+                String countStr = redisTemplate.opsForValue().get(key);
+                String title = redisTemplate.opsForValue().get(KP_CLICK_PREFIX + kpId + ":title");
+
+                if (countStr != null) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", kpId);
+                    item.put("title", title != null ? title : kpId);
+                    item.put("clickCount", Long.parseLong(countStr));
+                    result.add(item);
+                }
+            }
+        }
+
+        // 按点击次数降序排列
+        result.sort((a, b) -> Long.compare((Long) b.get("clickCount"), (Long) a.get("clickCount")));
+        return result;
     }
 }

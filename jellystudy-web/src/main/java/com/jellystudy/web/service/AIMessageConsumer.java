@@ -46,9 +46,12 @@ public class AIMessageConsumer {
             }
             
             response.setProcessingTime(request.getTimestamp());
-            
+
+            logger.info("保存AI响应到缓存: sessionId={}, requestId={}, success={}",
+                       request.getSessionId(), request.getRequestId(), response.isSuccess());
+
             cacheService.saveAIResponse(request.getSessionId(), request.getRequestId(), response);
-            
+
             logger.info("AI请求处理完成: requestId={}, processingTime={}ms, success={}", 
                        request.getRequestId(), response.getProcessingTimeMs(), response.isSuccess());
             

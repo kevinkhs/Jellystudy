@@ -14,7 +14,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/question")
@@ -235,6 +237,26 @@ public class QuestionController {
                                @PathVariable String cid) {
         questionService.deleteComment(qid, aid, cid);
         return "redirect:/question/" + qid + "#answer-" + aid;
+    }
+
+    @PostMapping("/{qid}/answer/{aid}/comment/{cid}/like")
+    @ResponseBody
+    public Map<String, Object> likeComment(@PathVariable String qid, @PathVariable String aid,
+                                          @PathVariable String cid,
+                                          @RequestParam(defaultValue = "user_001") String userId) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            questionService.likeEntity(userId, "comment", cid);
+            result.put("success", true);
+            result.put("message", "点赞成功");
+            logger.info("评论点赞成功: commentId={}, userId={}", cid, userId);
+        } catch (Exception e) {
+            questionService.unlikeEntity(userId, "comment", cid);
+            result.put("success", true);
+            result.put("message", "取消点赞");
+            logger.info("取消评论点赞: commentId={}, userId={}", cid, userId);
+        }
+        return result;
     }
 
     @PostMapping("/{id}/like")

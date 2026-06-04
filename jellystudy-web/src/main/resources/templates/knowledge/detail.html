@@ -1,98 +1,511 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="layout :: head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${'知识点详情 - ' + (knowledgePoint != null ? knowledgePoint.title : '')}">知识点详情</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-               background-color: #f5f5f5; color: #333; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
-        .nav a:hover { opacity: 0.8; }
-        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin-top:30px;}
-        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
-                   padding-bottom: 10px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
-               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
-               transition: background 0.3s; font-size: 14px; }
-        .btn:hover { background: #5568d3; }
-        .btn-danger { background: #dc3545; }
-        .btn-danger:hover { background: #c82333; }
-        .kp-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; }
-        .kp-header h2 { color: white; border-color: rgba(255,255,255,0.3); margin-bottom:15px; }
-        .kp-meta { display: flex; gap: 20px; flex-wrap: wrap; opacity: 0.9; }
-        .question-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.3s; }
-        .question-item:hover { background: #f9f9f9; border-radius: 4px; padding-left: 10px; padding-right: 10px; }
-        .question-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; line-height: 1.4; }
-        .question-meta { font-size: 13px; color: #999; display: flex; gap: 15px; flex-wrap: wrap; }
-        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
-               border-radius: 4px; font-size: 13px; margin-right: 8px; }
-        .like-count { color: #dc3545; font-weight: bold; }
-    </style>
+    <title>知识卡牌详情 - JellyStudy</title>
 </head>
 <body>
-<div class="header">
-    <div class="container">
-        <h1>🎓 JellyStudy - 知识问答系统</h1>
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/question/list">问题列表</a>
-            <a href="/question/create">提问</a>
-            <a href="/knowledge/list">知识点管理</a>
-            <a href="/question/statistics">统计信息</a>
-        </div>
-    </div>
-</div>
 
-<div class="container">
-    <div class="kp-header" th:if="${knowledgePoint != null}">
-        <h2>📚 <span th:text="${knowledgePoint.title}">知识点名称</span></h2>
-        <p style="margin-bottom:15px; line-height:1.6;" th:text="${knowledgePoint.description}">描述信息</p>
-        <div class="kp-meta">
-            <span>🏷️ 分类：<span th:text="${knowledgePoint.category}">分类</span></span>
-            <span>📋 问题数：<span th:text="${questions != null ? questions.size() : 0}">0"></span></span>
-            <span>🕒 创建时间：<span th:text="${#temporals.format(knowledgePoint.createTime, 'yyyy-MM-dd')}">时间</span></span>
-        </div>
-    </div>
+<!-- Header Navigation -->
+<div th:replace="layout :: header"></div>
 
-    <div class="card">
-        <h2>📝 相关问题列表</h2>
-        <div th:if="${questions != null and !questions.isEmpty()}">
-            <div class="question-item" th:each="q : ${questions}">
-                <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
-                    <div class="question-title" th:text="${q.title}">问题标题</div>
-                    <div class="question-meta">
-                        <span th:if="${q.author != null}" th:text="${q.author}">作者</span>
-                        <span th:if="${q.createTime != null}" th:text="${#temporals.format(q.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
-                        <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
-                        <span>💬<span th:text="${q.answerCount != null ? q.answerCount : 0}">0"></span></span>
+<style>
+    /* ===== 卡牌详情页核心样式 ===== */
+    .detail-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 48px 0 32px;
+    }
+    .detail-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.06) 0%, transparent 50%, rgba(118,75,162,0.06) 100%);
+    }
+    .detail-hero .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        animation: float 6s ease-in-out infinite;
+    }
+    .detail-hero .orb-1 {
+        top: -60px; left: -60px; width: 350px; height: 350px;
+        background: rgba(102,126,234,0.12);
+    }
+    .detail-hero .orb-2 {
+        bottom: -80px; right: -80px; width: 450px; height: 450px;
+        background: rgba(118,75,162,0.1);
+        animation-delay: 2s;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* 返回链接 */
+    .back-link-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        color: rgba(255,255,255,0.5);
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s;
+        margin-bottom: 24px;
+    }
+    .back-link-card:hover {
+        background: rgba(255,255,255,0.08);
+        color: rgba(255,255,255,0.8);
+        border-color: rgba(255,255,255,0.15);
+    }
+
+    /* 大卡牌展示 */
+    .showcase-card {
+        position: relative;
+        width: 280px;
+        aspect-ratio: 3 / 4;
+        border-radius: 20px;
+        overflow: hidden;
+        margin: 0 auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        transition: transform 0.4s;
+    }
+    .showcase-card:hover {
+        transform: translateY(-8px) scale(1.02);
+    }
+    .showcase-card .card-glow {
+        position: absolute;
+        inset: 0;
+        opacity: 0.2;
+    }
+    .showcase-card .card-top-bar {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+    }
+    .showcase-card .card-content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 24px;
+        background: rgba(15,15,26,0.97);
+    }
+    .showcase-card .rarity-badge {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 4px 14px;
+        border-radius: 999px;
+        color: white;
+    }
+    .showcase-card .card-icon-box {
+        width: 96px;
+        height: 96px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 44px;
+        margin: 0 auto;
+        transition: transform 0.3s;
+    }
+    .showcase-card:hover .card-icon-box {
+        transform: scale(1.1);
+    }
+    .showcase-card .card-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: rgba(255,255,255,0.95);
+        margin-top: 16px;
+        text-align: center;
+    }
+    .showcase-card .card-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 8px;
+        text-align: center;
+        line-height: 1.5;
+    }
+    .showcase-card .card-meta {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
+    .showcase-card .card-meta .cat { color: rgba(255,255,255,0.35); }
+    .showcase-card .card-meta .level { font-weight: 700; }
+
+    /* 悬停发光 */
+    .showcase-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        box-shadow: 0 0 60px rgba(102,126,234,0.3);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    .showcase-card:hover::after { opacity: 1; }
+
+    /* 稀有度配色 - 与列表页一致 */
+    .rarity-common .showcase-card { border: 2px solid rgba(148,163,184,0.3); }
+    .rarity-common .showcase-card .card-glow { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rarity-common .showcase-card .card-top-bar { background: linear-gradient(90deg, #94a3b8, #64748b); }
+    .rarity-common .showcase-card .rarity-badge { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rarity-common .rarity-text { color: #94a3b8; }
+    .rarity-common .showcase-card .card-icon-box { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 12px 35px rgba(148,163,184,0.3); }
+
+    .rarity-rare .showcase-card { border: 2px solid rgba(59,130,246,0.4); }
+    .rarity-rare .showcase-card .card-glow { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .rarity-rare .showcase-card .card-top-bar { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    .rarity-rare .showcase-card .rarity-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .rarity-rare .rarity-text { color: #60a5fa; }
+    .rarity-rare .showcase-card .card-icon-box { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 12px 35px rgba(59,130,246,0.35); }
+
+    .rarity-epic .showcase-card { border: 2px solid rgba(168,85,247,0.4); }
+    .rarity-epic .showcase-card .card-glow { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .rarity-epic .showcase-card .card-top-bar { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+    .rarity-epic .showcase-card .rarity-badge { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .rarity-epic .rarity-text { color: #c084fc; }
+    .rarity-epic .showcase-card .card-icon-box { background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 12px 35px rgba(168,85,247,0.35); }
+
+    .rarity-legendary .showcase-card { border: 2px solid rgba(245,158,11,0.4); }
+    .rarity-legendary .showcase-card .card-glow { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .rarity-legendary .showcase-card .card-top-bar { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+    .rarity-legendary .showcase-card .rarity-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .rarity-legendary .rarity-text { color: #fbbf24; }
+    .rarity-legendary .showcase-card .card-icon-box { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 12px 35px rgba(245,158,11,0.35); }
+
+    /* 传说卡牌呼吸光效 */
+    .rarity-legendary .showcase-card::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, #f59e0b, #ef4444, #f59e0b);
+        z-index: -1;
+        animation: legendaryPulse 2s ease-in-out infinite;
+    }
+    @keyframes legendaryPulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.6; }
+    }
+
+    /* 信息面板 */
+    .info-panel {
+        background: rgba(15,15,26,0.8);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 24px;
+        backdrop-filter: blur(12px);
+    }
+    .info-panel h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.95);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* 操作按钮 */
+    .action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s;
+        width: 100%;
+        text-decoration: none;
+    }
+    .action-btn:hover { transform: translateY(-2px); }
+    .action-btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+    }
+    .action-btn-primary:hover { box-shadow: 0 8px 25px rgba(102,126,234,0.45); }
+    .action-btn-secondary {
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .action-btn-secondary:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.9); }
+    .action-btn-danger {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.2);
+    }
+    .action-btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+    /* 统计条目 */
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        font-size: 14px;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .stat-label { color: rgba(255,255,255,0.4); }
+    .stat-row .stat-value { font-weight: 700; color: rgba(255,255,255,0.9); }
+
+    /* 相关问题卡牌 */
+    .question-card {
+        background: rgba(15,15,26,0.6);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 18px 20px;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .question-card:hover {
+        border-color: rgba(102,126,234,0.3);
+        background: rgba(15,15,26,0.8);
+        transform: translateX(4px);
+        box-shadow: 0 4px 20px rgba(102,126,234,0.1);
+    }
+    .question-card h4 {
+        font-weight: 700;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+    .question-card:hover h4 { color: #667eea; }
+    .question-card .q-meta {
+        display: flex;
+        gap: 14px;
+        font-size: 12px;
+        color: rgba(255,255,255,0.35);
+    }
+
+    /* 经验值进度条 */
+    .exp-bar-wrap {
+        margin-top: 8px;
+    }
+    .exp-bar-track {
+        height: 6px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .exp-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.6s ease;
+    }
+
+    /* 动画 */
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes cardReveal {
+        0% { transform: scale(0.8) rotateY(90deg); opacity: 0; }
+        50% { transform: scale(1.05) rotateY(0deg); opacity: 1; }
+        100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+    }
+    .animate-card-reveal {
+        animation: cardReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-out both;
+    }
+</style>
+
+<!-- ========== DETAIL HERO ========== -->
+<section class="detail-hero" th:with="isBenghuai=${knowledgePoint != null and knowledgePoint.title != null and knowledgePoint.title.contains('崩坏')}, rarity=${isBenghuai ? 'legendary' : (knowledgePoint != null and knowledgePoint.questionCount != null and knowledgePoint.questionCount >= 40 ? 'legendary' : (knowledgePoint != null and knowledgePoint.questionCount != null and knowledgePoint.questionCount >= 25 ? 'epic' : (knowledgePoint != null and knowledgePoint.questionCount != null and knowledgePoint.questionCount >= 10 ? 'rare' : 'common')))}">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="container" style="position:relative;">
+        <a href="/knowledge/list" class="back-link-card">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            返回图鉴
+        </a>
+
+        <div style="display:grid; grid-template-columns:1fr; gap:40px; align-items:start;" class="detail-layout">
+            <style>
+                @media(min-width:1024px) {
+                    .detail-layout { grid-template-columns: 320px 1fr !important; }
+                }
+            </style>
+
+            <!-- 左侧：大卡牌展示 -->
+            <div th:class="'animate-card-reveal rarity-' + ${rarity}" style="position:sticky; top:100px;">
+                <div class="showcase-card">
+                    <div class="card-glow"></div>
+                    <div class="card-top-bar"></div>
+                    <div class="card-content">
+                        <!-- 稀有度标签 -->
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                            <span class="rarity-badge" th:text="${rarity == 'legendary' ? '传说' : (rarity == 'epic' ? '史诗' : (rarity == 'rare' ? '稀有' : '普通'))}">普通</span>
+                            <div style="display:flex; gap:3px;">
+                                <svg th:if="${rarity == 'rare' or rarity == 'epic' or rarity == 'legendary'}" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                <svg th:if="${rarity == 'epic' or rarity == 'legendary'}" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                <svg th:if="${rarity == 'legendary'}" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                <svg th:if="${rarity == 'legendary'}" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- 图标 -->
+                        <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                            <div class="card-icon-box">
+                                <span th:text="${isBenghuai ? '⚡' : (knowledgePoint != null and knowledgePoint.category == 'Frontend' ? '⚛️' : (knowledgePoint != null and knowledgePoint.category == 'Backend' ? '🖥️' : (knowledgePoint != null and knowledgePoint.category == 'Database' ? '🗄️' : (knowledgePoint != null and knowledgePoint.category == 'DevOps' ? '🐳' : (knowledgePoint != null and knowledgePoint.category == 'Algorithm' ? '🧮' : (knowledgePoint != null and knowledgePoint.category == 'Network' ? '🌐' : (knowledgePoint != null and knowledgePoint.category == 'Security' ? '🛡️' : (knowledgePoint != null and knowledgePoint.category == 'AI' ? '🤖' : (knowledgePoint != null and knowledgePoint.category == 'Mobile' ? '📱' : (knowledgePoint != null and knowledgePoint.category == 'Cloud' ? '☁️' : (knowledgePoint != null and knowledgePoint.category == 'Testing' ? '🧪' : (knowledgePoint != null and knowledgePoint.category == 'Design' ? '🎨' : '📖'))))))))))))}">📖</span>
+                            </div>
+                        </div>
+
+                        <!-- 标题与描述 -->
+                        <div class="card-title" th:text="${knowledgePoint != null ? knowledgePoint.title : '未知'}">标题</div>
+                        <div class="card-desc" th:text="${knowledgePoint != null ? knowledgePoint.description : ''}">描述</div>
+
+                        <!-- 底部信息 -->
+                        <div class="card-meta" style="margin-top:16px;">
+                            <span class="cat" th:text="${knowledgePoint != null ? knowledgePoint.category : ''}">分类</span>
+                            <span class="level rarity-text" th:text="'Lv.' + ${knowledgePoint != null and knowledgePoint.questionCount != null ? knowledgePoint.questionCount : 0}">Lv.0</span>
+                        </div>
+
+                        <!-- 经验值条 -->
+                        <div class="exp-bar-wrap">
+                            <div class="exp-bar-track">
+                                <div class="exp-bar-fill" th:style="'width:' + ${isBenghuai ? 100 : (knowledgePoint != null and knowledgePoint.questionCount != null ? (knowledgePoint.questionCount >= 40 ? 100 : (knowledgePoint.questionCount >= 25 ? 75 : (knowledgePoint.questionCount >= 10 ? 40 : 15))) : 5)} + '%; background:' + ${rarity == 'legendary' ? 'linear-gradient(90deg,#f59e0b,#ef4444)' : (rarity == 'epic' ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : (rarity == 'rare' ? 'linear-gradient(90deg,#3b82f6,#2563eb)' : 'linear-gradient(90deg,#94a3b8,#64748b)'))} + ';'"></div>
+                            </div>
+                        </div>
                     </div>
-                </a>
+                </div>
+            </div>
+
+            <!-- 右侧：详情内容 -->
+            <div style="min-width:0;">
+                <!-- 操作按钮区 -->
+                <div class="animate-slide-up" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:28px; animation-delay:0.1s;">
+                    <button class="action-btn action-btn-primary" style="flex:1; min-width:120px;" onclick="this.classList.toggle('liked'); this.innerHTML = this.classList.contains('liked') ? '❤️ 已点赞' : '🤍 点赞';">
+                        🤍 点赞
+                    </button>
+                    <button class="action-btn action-btn-secondary" style="flex:1; min-width:120px;" onclick="this.innerHTML = this.innerHTML.includes('已收藏') ? '🔖 收藏' : '🔖 已收藏';">
+                        🔖 收藏
+                    </button>
+                    <a th:if="${knowledgePoint != null}"
+                       th:href="@{/knowledge/{id}/edit(id=${knowledgePoint.id})}"
+                       class="action-btn action-btn-secondary" style="flex:1; min-width:120px;">
+                        ✏️ 编辑
+                    </a>
+                </div>
+
+                <!-- 统计信息 -->
+                <div class="info-panel animate-slide-up" style="margin-bottom:24px; animation-delay:0.2s;">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                        卡牌属性
+                    </h3>
+                    <div class="stat-row">
+                        <span class="stat-label">稀有度</span>
+                        <span class="stat-value rarity-text" th:text="${rarity == 'legendary' ? '传说' : (rarity == 'epic' ? '史诗' : (rarity == 'rare' ? '稀有' : '普通'))}">普通</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">等级</span>
+                        <span class="stat-value rarity-text" th:text="'Lv.' + ${knowledgePoint != null and knowledgePoint.questionCount != null ? knowledgePoint.questionCount : 0}">Lv.0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">相关问题数</span>
+                        <span class="stat-value" th:text="${questions != null ? questions.size() : 0}">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">分类</span>
+                        <span class="stat-value" th:text="${knowledgePoint != null ? knowledgePoint.category : '--'}">--</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">创建时间</span>
+                        <span class="stat-value" th:text="${knowledgePoint != null ? #temporals.format(knowledgePoint.createTime, 'yyyy-MM-dd') : '--'}">--</span>
+                    </div>
+                </div>
+
+                <!-- 知识点描述 -->
+                <div class="info-panel animate-slide-up" style="margin-bottom:24px; animation-delay:0.3s;">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        卡牌描述
+                    </h3>
+                    <div th:if="${knowledgePoint != null and knowledgePoint.description != null and knowledgePoint.description != ''}"
+                         style="line-height:1.8; color:rgba(255,255,255,0.7); font-size:15px;"
+                         th:text="${knowledgePoint.description}">
+                        描述内容
+                    </div>
+                    <div th:unless="${knowledgePoint != null and knowledgePoint.description != null and knowledgePoint.description != ''}"
+                         style="color:rgba(255,255,255,0.3); text-align:center; padding:20px;">
+                        暂无详细描述
+                    </div>
+                </div>
+
+                <!-- 相关问题 -->
+                <div class="info-panel animate-slide-up" style="margin-bottom:24px; animation-delay:0.4s;">
+                    <h3>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        相关问题
+                        <span style="font-size:14px; font-weight:400; color:rgba(255,255,255,0.4); margin-left:auto;" th:text="${questions != null ? questions.size() : 0} + ' 题'">0 题</span>
+                    </h3>
+
+                    <div th:if="${questions != null and !questions.isEmpty()}" style="display:flex; flex-direction:column; gap:10px;">
+                        <a th:each="q, iter : ${questions}"
+                           th:href="@{/question/{id}(id=${q.id})}"
+                           class="question-card"
+                           th:style="'animation: slideUp 0.4s ease-out ' + (${iter.index} * 0.06) + 's both;'">
+                            <h4 th:text="${q.title}">问题标题</h4>
+                            <div class="q-meta">
+                                <span th:if="${q.author != null}" th:text="${'👤 ' + q.author}">作者</span>
+                                <span th:if="${q.createTime != null}" th:text="${'📅 ' + #temporals.format(q.createTime, 'yyyy-MM-dd')}">时间</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div th:unless="${questions != null and !questions.isEmpty()}"
+                         style="text-align:center; padding:32px; color:rgba(255,255,255,0.3);">
+                        <div style="font-size:40px; margin-bottom:12px; opacity:0.3;">💬</div>
+                        暂无相关的问题
+                    </div>
+
+                    <a th:if="${questions != null and !questions.isEmpty()}"
+                       href="/question/list"
+                       style="display:block; margin-top:16px; text-align:center; color:#667eea; font-weight:700; font-size:14px; text-decoration:none; transition:opacity 0.3s;"
+                       onmouseover="this.style.opacity='0.7'"
+                       onmouseout="this.style.opacity='1'">
+                        查看所有相关问题 →
+                    </a>
+                </div>
+
+                <!-- 危险操作 -->
+                <div class="animate-slide-up" style="animation-delay:0.5s;">
+                    <form th:if="${knowledgePoint != null}"
+                          th:action="@{/knowledge/{id}/delete(id=${knowledgePoint.id})}"
+                          method="post"
+                          onsubmit="return confirm('确定要删除这张知识卡牌吗？此操作不可恢复。');">
+                        <button type="submit" class="action-btn action-btn-danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            删除卡牌
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-        <div th:unless="${questions != null and !questions.isEmpty()}">
-            <p style="text-align:center; color:#999; padding:30px;">暂无相关的问题</p>
-        </div>
-
-        <div style="margin-top:25px; display:flex; gap:10px;">
-            <a th:href="@{/knowledge/{id}/edit(id=${knowledgePoint.id})}" class="btn">✏️ 编辑</a>
-            <form th:action="@{/knowledge/{id}/delete(id=${knowledgePoint.id})}"
-                  method="post" onsubmit="return confirm('确定要删除这个知识点吗？');"
-                  style="display:inline;">
-                <button type="submit" class="btn btn-danger">🗑️ 删除</button>
-            </form>
-            <a href="/knowledge/list" class="btn">← 返回列表</a>
-        </div>
     </div>
-</div>
+</section>
+
 </body>
 </html>

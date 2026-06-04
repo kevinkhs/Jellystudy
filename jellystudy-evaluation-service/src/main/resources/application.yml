@@ -32,4 +32,4 @@ dubbo:
 deepseek:
   api-key: sk-6f978b89ecf044dca3b753df0284f8ee
   api-url: https://api.deepseek.com/v1/chat/completions
-  model: deepseek-chat
+  model: deepseek-v4-pro

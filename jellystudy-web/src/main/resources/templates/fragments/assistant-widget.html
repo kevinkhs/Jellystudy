@@ -1,492 +1,154 @@
-<!-- 智能助手悬浮窗组件 -->
+<!-- AI 助手悬浮窗组件 - v0 设计 -->
 <div id="ai-assistant-widget" th:fragment="assistant-widget">
+
     <!-- 悬浮按钮 -->
-    <div id="assistant-toggle" onclick="toggleAssistant()" title="AI助手" style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 15px rgba(102,126,234,0.4);transition:all 0.3s ease;position:relative;overflow:hidden;">
-        <img class="assistant-icon" th:src="@{/images/lgs.webp}" alt="AI助手" style="width:48px;height:48px;object-fit:contain;animation:bounce 2s infinite;">
-        <div class="assistant-badge" id="assistant-badge" style="display: none;">0</div>
-    </div>
+    <button id="assistant-toggle" onclick="toggleAssistant()"
+            style="position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
+                   background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; box-shadow:0 4px 15px rgba(102,126,234,0.4);
+                   transition:all 0.3s ease; animation:pulseGlow 3s ease-in-out infinite;"
+            onmouseover="if(!isPanelOpen){this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 25px rgba(102,126,234,0.6)'}"
+            onmouseout="if(!isPanelOpen){this.style.transform='';this.style.boxShadow='0 4px 15px rgba(102,126,234,0.4)'}">
+        <!-- Sparkles 图标 -->
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:bounceSubtle 2s ease-in-out infinite;">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            <path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
+        </svg>
+        <!-- 通知红点 -->
+        <span style="position:absolute; top:-3px; right:-3px; display:flex;">
+            <span style="display:inline-flex; width:12px; height:12px; border-radius:50%; background:#ef4444; opacity:0.75; animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></span>
+            <span style="position:relative; display:inline-flex; width:12px; height:12px; border-radius:50%; background:#ef4444;"></span>
+        </span>
+    </button>
 
-    <!-- 主面板 -->
-    <div id="assistant-panel" style="display: none;">
-        <!-- 头部 -->
-        <div class="panel-header">
-            <div class="header-left">
-                <span class="header-title">🤖 博识尊 - AI助手</span>
+    <!-- 聊天面板 -->
+    <div id="assistant-panel"
+         style="position:fixed; bottom:24px; right:24px; z-index:9999; width:400px; max-width:calc(100vw - 48px); height:600px; overflow:hidden;
+                border-radius:16px; border:1px solid rgba(255,255,255,0.08); background:rgba(15,15,26,0.95); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+                box-shadow:0 25px 50px -12px rgba(102,126,234,0.2); transition:all 0.5s ease; display:none; flex-direction:column;">
+
+        <!-- 面板头部 -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.06); background:linear-gradient(to right, rgba(102,126,234,0.1), rgba(118,75,162,0.1));">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                </div>
+                <div>
+                    <h3 style="font-size:15px; font-weight:600; color:rgba(255,255,255,0.95); margin:0;">AI 学习助手</h3>
+                    <p style="font-size:12px; color:rgba(255,255,255,0.45); margin:2px 0 0 0;">随时为你解答</p>
+                </div>
             </div>
-            <div class="header-right">
-                <button class="tab-btn active" onclick="switchTab('chat')" data-tab="chat">💬 对话</button>
-                <button class="tab-btn" onclick="switchTab('knowledge')" data-tab="knowledge">📚 知识图谱</button>
-                <button class="close-btn" onclick="toggleAssistant()">✕</button>
+            <button onclick="toggleAssistant()" style="background:none; border:none; color:rgba(255,255,255,0.6); cursor:pointer; padding:6px; border-radius:8px; transition:all 0.2s; display:flex; align-items:center; justify-content:center;"
+                    onmouseover="this.style.background='rgba(239,68,68,0.1)'; this.style.color='#ef4444'"
+                    onmouseout="this.style.background='none'; this.style.color='rgba(255,255,255,0.6)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <!-- 标签页切换 -->
+        <div style="display:flex; border-bottom:1px solid rgba(255,255,255,0.06);">
+            <button id="tab-chat-btn" onclick="switchTab('chat')" class="assistant-tab active"
+                    style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px 0; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:#667eea; border-bottom:2px solid #667eea; transition:all 0.3s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                对话
+            </button>
+            <button id="tab-knowledge-btn" onclick="switchTab('knowledge')" class="assistant-tab"
+                    style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px 0; border:none; background:none; cursor:pointer; font-size:14px; font-weight:500; color:rgba(255,255,255,0.45); border-bottom:2px solid transparent; transition:all 0.3s;"
+                    onmouseover="if(!this.classList.contains('active')) this.style.color='rgba(255,255,255,0.75)'"
+                    onmouseout="if(!this.classList.contains('active')) this.style.color='rgba(255,255,255,0.45)'">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                知识图谱
+            </button>
+        </div>
+
+        <!-- 对话内容区 -->
+        <div id="tab-chat" class="tab-content" style="flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:16px;">
+            <div class="msg-row" style="display:flex; justify-content:flex-start;">
+                <div class="msg-bubble msg-assistant" style="max-width:85%; border-radius:16px; padding:12px 16px; font-size:14px; line-height:1.6; color:rgba(255,255,255,0.9); background:rgba(255,255,255,0.07);">
+                    <pre style="white-space:pre-wrap;margin:0;font-family:inherit;font-size:inherit;">你好！我是 JellyStudy 的 AI 学习助手 🎓
+
+我可以帮你解答学习问题、解释复杂概念、提供学习建议。有什么我可以帮助你的吗？</pre>
+                </div>
+            </div>
+            <div id="chat-messages-container"></div>
+        </div>
+
+        <!-- 知识图谱内容区 -->
+        <div id="tab-knowledge" class="tab-content" style="flex:1; display:none; flex-direction:column; padding:16px; overflow-y:auto;">
+            <div style="text-align:center; margin-bottom:16px;">
+                <div style="margin-bottom:12px; width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.2)); display:inline-flex; align-items:center; justify-content:center;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <h4 style="font-size:15px; font-weight:600; color:rgba(255,255,255,0.95); margin-bottom:4px;">知识图谱可视化</h4>
+                <p style="font-size:12px; color:rgba(255,255,255,0.45); margin-bottom:12px;">基于你的浏览记录生成知识图谱</p>
+                <a href="/assistant/knowledge-graph" target="_blank"
+                   style="display:inline-flex; align-items:center; gap:6px; padding:10px 24px; border-radius:12px; border:none;
+                          background:linear-gradient(135deg,#667eea,#764ba2); color:white; cursor:pointer; font-size:14px; font-weight:600;
+                          text-decoration:none; transition:all 0.3s;"
+                   onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 15px rgba(102,126,234,0.4)'"
+                   onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    进入图谱
+                </a>
+            </div>
+            <!-- 最近浏览的知识点列表 -->
+            <div id="recent-kp-list" style="margin-top:8px;">
+                <h5 style="font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:8px;">最近浏览的知识点</h5>
+                <div id="recent-kp-items" style="display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:12px; color:rgba(255,255,255,0.35);">浏览问题后将自动记录</p>
+                </div>
             </div>
         </div>
 
-        <!-- 对话标签页 -->
-        <div id="tab-chat" class="tab-content active">
-            <div id="chat-messages" class="chat-messages">
-                <div class="message assistant-message">
-                    <div class="message-avatar">🤖</div>
-                    <div class="message-content">
-                        <p>你好！我是<strong>博识尊</strong>，JellyStudy的AI学习助手。我可以：</p>
-                        <ul style="margin: 8px 0; padding-left: 20px;">
-                            <li>回答学术和技术问题</li>
-                            <li>解释复杂概念</li>
-                            <li>提供学习建议</li>
-                        </ul>
-                        <p>有什么可以帮助你的吗？😊</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chat-input-area">
-                <textarea id="user-input" placeholder="输入你的问题..."
-                         onkeydown="handleKeyDown(event)" rows="2"></textarea>
-                <button id="send-btn" onclick="sendMessage()">
-                    <span class="send-text">发送</span>
-                    <span class="send-loading" style="display: none;">⏳</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 知识图谱标签页 -->
-        <div id="tab-knowledge" class="tab-content" style="display: none;">
-            <div class="knowledge-header">
-                <h4>📌 我感兴趣的知识点</h4>
-                <div class="knowledge-actions">
-                    <button class="action-btn primary" onclick="generateKnowledgeGraph()">
-                        🗺️ 生成图谱
-                    </button>
-                    <button class="action-btn danger" onclick="clearAllInterests()">
-                        🗑️ 清空列表
-                    </button>
-                </div>
-            </div>
-
-            <div id="interested-points-list" class="points-list">
-                <div class="empty-state">
-                    <p>📭 还没有标记任何知识点</p>
-                    <p class="hint">在问题详情页点击"📌 标记感兴趣"按钮来添加</p>
-                </div>
-            </div>
-
-            <div id="graph-container" class="graph-container" style="display: none;">
-                <div class="graph-header">
-                    <h4>🗺️ 知识图谱</h4>
-                    <button class="close-graph-btn" onclick="closeGraph()">✕ 关闭</button>
-                </div>
-                <div id="graph-canvas" class="graph-canvas"></div>
-            </div>
+        <!-- 输入区域 -->
+        <div id="chat-input-area" style="border-top:1px solid rgba(255,255,255,0.06); padding:16px; display:flex; gap:10px;">
+            <input type="text" id="user-input" placeholder="输入你的问题..."
+                   onkeydown="handleKeyDown(event)"
+                   style="flex:1; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); padding:12px 16px; font-size:14px;
+                          color:rgba(255,255,255,0.95); outline:none; transition:all 0.3s;"
+                   onfocus="this.style.borderColor='rgba(102,126,234,0.5)'; this.style.boxShadow='0 0 0 3px rgba(102,126,234,0.15)'"
+                   onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'"/>
+            <button id="send-btn" onclick="sendMessage()"
+                    style="padding:12px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,#667eea,#764ba2); color:white; cursor:pointer; font-size:14px; font-weight:600; transition:all 0.3s; display:flex; align-items:center; justify-content:center;"
+                    onmouseover="this.style.opacity='0.9'"
+                    onmouseout="this.style.opacity='1'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
         </div>
     </div>
 </div>
 
 <style>
-#ai-assistant-widget {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 10000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
+    /* AI 助手动画 */
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 20px rgba(102,126,234,0.3); }
+        50% { box-shadow: 0 0 40px rgba(102,126,234,0.6); }
+    }
+    @keyframes bounceSubtle {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    @keyframes ping {
+        75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-#assistant-toggle {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
+    /* 消息气泡 */
+    .msg-user {
+        background: linear-gradient(135deg,#667eea,#764ba2) !important;
+        color: white !important;
+    }
+    .msg-row {
+        animation: fadeInUp 0.3s ease-out;
+    }
 
-#assistant-toggle:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
+    /* 滚动条 */
+    #tab-chat::-webkit-scrollbar { width: 4px; }
+    #tab-chat::-webkit-scrollbar-track { background: transparent; }
+    #tab-chat::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
-.assistant-icon {
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-.assistant-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ff4444;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-#assistant-panel {
-    position: absolute;
-    bottom: 75px;
-    right: 0;
-    width: 400px;
-    max-height: 600px;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.panel-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-title {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.header-right {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.tab-btn {
-    padding: 6px 14px;
-    border: none;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.3s;
-}
-
-.tab-btn.active {
-    background: rgba(255, 255, 255, 0.9);
-    color: #667eea;
-    font-weight: 600;
-}
-
-.tab-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    transition: transform 0.2s;
-}
-
-.close-btn:hover {
-    transform: scale(1.2);
-}
-
-.tab-content {
-    display: none;
-    height: 500px;
-    overflow-y: auto;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-.chat-messages {
-    padding: 20px;
-    min-height: 380px;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.message {
-    margin-bottom: 16px;
-    display: flex;
-    gap: 10px;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.message-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.user-message .message-avatar {
-    background: #667eea;
-}
-
-.assistant-message .message-avatar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.message-content {
-    flex: 1;
-    background: #f8f9fa;
-    padding: 12px 16px;
-    border-radius: 12px;
-    line-height: 1.6;
-    font-size: 14px;
-    color: #333;
-}
-
-.user-message .message-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.message-content p {
-    margin: 4px 0;
-}
-
-.message-content ul {
-    margin: 8px 0;
-}
-
-.message-content strong {
-    color: #667eea;
-}
-
-.user-message .message-content strong {
-    color: #fff;
-}
-
-.chat-input-area {
-    padding: 15px 20px;
-    border-top: 1px solid #eee;
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    background: #fafafa;
-}
-
-#user-input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    resize: none;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.3s;
-}
-
-#user-input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-#send-btn {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s;
-    white-space: nowrap;
-}
-
-#send-btn:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-#send-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.knowledge-header {
-    padding: 20px 20px 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.knowledge-header h4 {
-    margin: 0 0 12px 0;
-    color: #333;
-    font-size: 15px;
-}
-
-.knowledge-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.action-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.action-btn.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.action-btn.primary:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.action-btn.danger {
-    background: #fee;
-    color: #dc3545;
-}
-
-.action-btn.danger:hover {
-    background: #fcc;
-}
-
-.points-list {
-    padding: 20px;
-    min-height: 200px;
-}
-
-.point-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border-left: 3px solid #667eea;
-    animation: fadeIn 0.3s ease;
-}
-
-.point-item .point-info {
-    flex: 1;
-}
-
-.point-item .point-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 14px;
-    margin-bottom: 4px;
-}
-
-.point-item .point-time {
-    font-size: 12px;
-    color: #999;
-}
-
-.remove-point-btn {
-    background: none;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 4px 8px;
-    transition: transform 0.2s;
-}
-
-.remove-point-btn:hover {
-    transform: scale(1.2);
-}
-
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: #999;
-}
-
-.empty-state p {
-    margin: 8px 0;
-    font-size: 14px;
-}
-
-.empty-state .hint {
-    font-size: 13px;
-    color: #bbb;
-}
-
-.graph-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white;
-    z-index: 10;
-}
-
-.graph-header {
-    padding: 15px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.graph-header h4 {
-    margin: 0;
-    font-size: 15px;
-}
-
-.close-graph-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.3s;
-}
-
-.close-graph-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.graph-canvas {
-    height: calc(100% - 60px);
-    background: #fafafa;
-}
+    /* 输入框占位符 */
+    #user-input::placeholder { color: rgba(255,255,255,0.35); }
 </style>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识图谱 - JellyStudy</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .navbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 32px;
+            background: rgba(15, 15, 26, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+        }
+        .navbar h1 {
+            font-size: 20px; font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .navbar a {
+            color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+            padding: 8px 16px; border-radius: 8px; transition: all 0.3s;
+        }
+        .navbar a:hover { color: white; background: rgba(255,255,255,0.08); }
+
+        .main-container {
+            display: flex; height: calc(100vh - 60px);
+        }
+        .graph-area {
+            flex: 1; position: relative;
+        }
+        #graph-chart {
+            width: 100%; height: 100%;
+        }
+        .sidebar {
+            width: 320px; padding: 24px;
+            background: rgba(15, 15, 26, 0.95);
+            border-left: 1px solid rgba(255,255,255,0.06);
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.95);
+            margin-bottom: 8px;
+        }
+        .sidebar p {
+            font-size: 13px; color: rgba(255,255,255,0.45);
+            margin-bottom: 20px; line-height: 1.5;
+        }
+        .stat-card {
+            padding: 16px; border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 12px;
+        }
+        .stat-card .label {
+            font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 4px;
+        }
+        .stat-card .value {
+            font-size: 28px; font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .kp-list { margin-top: 20px; }
+        .kp-list h3 {
+            font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.7);
+            margin-bottom: 12px;
+        }
+        .kp-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 6px; transition: all 0.2s; cursor: pointer;
+            text-decoration: none;
+        }
+        .kp-item:hover { background: rgba(102,126,234,0.12); }
+        .kp-item .kp-title {
+            font-size: 13px; color: rgba(255,255,255,0.85);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            max-width: 180px;
+        }
+        .kp-item .kp-count {
+            font-size: 12px; color: rgba(255,255,255,0.4); flex-shrink: 0;
+        }
+        .kp-item .kp-bar {
+            position: absolute; left: 0; top: 0; bottom: 0;
+            border-radius: 10px; opacity: 0.08;
+        }
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+        }
+        .empty-state svg {
+            margin-bottom: 16px; opacity: 0.3;
+        }
+        .empty-state h3 {
+            font-size: 16px; color: rgba(255,255,255,0.6); margin-bottom: 8px;
+        }
+        .empty-state p {
+            font-size: 13px; color: rgba(255,255,255,0.35);
+        }
+        .loading {
+            display: flex; align-items: center; justify-content: center;
+            height: 100%; font-size: 16px; color: #667eea;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spinner {
+            width: 32px; height: 32px; border: 3px solid rgba(102,126,234,0.2);
+            border-top-color: #667eea; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-right: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h1>知识图谱</h1>
+    <a href="/">返回首页</a>
+</div>
+
+<div class="main-container">
+    <div class="graph-area">
+        <div id="graph-chart"></div>
+    </div>
+    <div class="sidebar">
+        <h2>学习热度分析</h2>
+        <p>基于你的浏览记录，知识点面积越大表示你关注越多</p>
+        <div class="stat-card">
+            <div class="label">已探索知识点</div>
+            <div class="value" id="total-kp">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">总浏览次数</div>
+            <div class="value" id="total-clicks">0</div>
+        </div>
+        <div class="kp-list">
+            <h3>知识点热度排行</h3>
+            <div id="kp-ranking"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var chart = echarts.init(document.getElementById('graph-chart'));
+
+    function renderGraph(data) {
+        if (!data.nodes || data.nodes.length === 0) {
+            document.querySelector('.graph-area').innerHTML =
+                '<div class="empty-state">' +
+                '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' +
+                '<h3>暂无浏览记录</h3>' +
+                '<p>浏览问题页面后，知识点会自动记录到图谱中</p>' +
+                '</div>';
+            return;
+        }
+
+        var maxClick = Math.max.apply(null, data.nodes.map(function(n) { return n.clickCount; }));
+        var minSize = 50;
+        var maxSize = 160;
+
+        // 颜色列表
+        var colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#43e97b', '#fa709a', '#fee140', '#a18cd1', '#fbc2eb'];
+
+        var nodes = data.nodes.map(function(node, i) {
+            var ratio = maxClick > 1 ? (node.clickCount - 1) / (maxClick - 1) : 1;
+            var size = minSize + ratio * (maxSize - minSize);
+            return {
+                id: node.id,
+                name: node.title,
+                symbolSize: size,
+                value: node.clickCount,
+                itemStyle: {
+                    color: colors[i % colors.length],
+                    borderColor: 'rgba(255,255,255,0.3)',
+                    borderWidth: 2,
+                    shadowBlur: 20,
+                    shadowColor: colors[i % colors.length] + '40'
+                },
+                label: {
+                    show: true,
+                    fontSize: Math.max(12, Math.min(20, 10 + node.clickCount * 2)),
+                    fontWeight: 'bold',
+                    color: '#fff'
+                }
+            };
+        });
+
+        // 生成连接线：相邻知识点之间有连接
+        var links = [];
+        for (var i = 0; i < nodes.length - 1; i++) {
+            links.push({
+                source: nodes[i].id,
+                target: nodes[i + 1].id,
+                lineStyle: {
+                    color: 'rgba(102,126,234,0.3)',
+                    width: 2,
+                    curveness: 0.2
+                }
+            });
+        }
+        // 点击次数相近的也连接
+        for (var i = 0; i < nodes.length; i++) {
+            for (var j = i + 2; j < nodes.length; j++) {
+                if (Math.abs(data.nodes[i].clickCount - data.nodes[j].clickCount) <= 1) {
+                    links.push({
+                        source: nodes[i].id,
+                        target: nodes[j].id,
+                        lineStyle: {
+                            color: 'rgba(240,147,251,0.2)',
+                            width: 1,
+                            curveness: 0.3
+                        }
+                    });
+                }
+            }
+        }
+
+        chart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    if (params.dataType === 'node') {
+                        return '<b>' + params.name + '</b><br/>浏览次数: ' + params.value;
+                    }
+                    return '';
+                },
+                backgroundColor: 'rgba(15,15,26,0.9)',
+                borderColor: 'rgba(102,126,234,0.3)',
+                textStyle: { color: '#fff' }
+            },
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            series: [{
+                type: 'graph',
+                layout: 'force',
+                data: nodes,
+                links: links,
+                roam: true,
+                draggable: true,
+                force: {
+                    repulsion: 500,
+                    edgeLength: [120, 300],
+                    gravity: 0.05,
+                    layoutAnimation: true
+                },
+                emphasis: {
+                    focus: 'adjacency',
+                    lineStyle: { width: 4 },
+                    itemStyle: { shadowBlur: 30 }
+                },
+                lineStyle: { opacity: 0.6, curveness: 0.2 },
+                label: { show: true, position: 'inside' },
+                cursor: 'pointer'
+            }]
+        });
+
+        chart.on('click', function(params) {
+            if (params.dataType === 'node') {
+                window.open('/knowledge/' + params.data.id, '_blank');
+            }
+        });
+
+        // 更新侧边栏统计
+        document.getElementById('total-kp').textContent = data.nodes.length;
+        var totalClicks = data.nodes.reduce(function(sum, n) { return sum + n.clickCount; }, 0);
+        document.getElementById('total-clicks').textContent = totalClicks;
+
+        // 更新排行榜
+        var ranking = document.getElementById('kp-ranking');
+        ranking.innerHTML = '';
+        data.nodes.forEach(function(node, i) {
+            var barWidth = maxClick > 0 ? (node.clickCount / maxClick * 100) : 0;
+            var item = document.createElement('a');
+            item.className = 'kp-item';
+            item.href = '/knowledge/' + node.id;
+            item.target = '_blank';
+            item.style.position = 'relative';
+            item.style.overflow = 'hidden';
+            item.innerHTML =
+                '<div style="position:absolute;left:0;top:0;bottom:0;width:' + barWidth + '%;background:' + colors[i % colors.length] + ';opacity:0.1;border-radius:10px;"></div>' +
+                '<span class="kp-title" style="position:relative;">' + (i + 1) + '. ' + node.title + '</span>' +
+                '<span class="kp-count" style="position:relative;">' + node.clickCount + '次</span>';
+            ranking.appendChild(item);
+        });
+    }
+
+    // 加载数据
+    document.querySelector('.graph-area').innerHTML = '<div class="loading"><div class="spinner"></div>加载知识图谱数据...</div>';
+
+    fetch('/assistant/graph-data')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.querySelector('.graph-area').innerHTML = '<div id="graph-chart" style="width:100%;height:100%;"></div>';
+            chart = echarts.init(document.getElementById('graph-chart'));
+            if (data.success) {
+                renderGraph(data);
+            } else {
+                document.querySelector('.graph-area').innerHTML =
+                    '<div class="empty-state"><h3>加载失败</h3><p>' + (data.error || '请稍后重试') + '</p></div>';
+            }
+            window.addEventListener('resize', function() { chart.resize(); });
+        })
+        .catch(function(err) {
+            document.querySelector('.graph-area').innerHTML =
+                '<div class="empty-state"><h3>网络错误</h3><p>请检查网络连接后刷新页面</p></div>';
+        });
+</script>
+
+</body>
+</html>

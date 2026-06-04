@@ -48,7 +48,7 @@ public class EvaluationServiceImpl implements EvaluationService {
                 Evaluation evaluation = parseEvaluationResponse(response);
                 evaluation.setTargetId(questionId);
                 evaluation.setTargetType("question");
-                evaluation.setModelVersion("deepseek-chat");
+                evaluation.setModelVersion("deepseek-v4-pro");
                 evaluation.setCreateTime(LocalDateTime.now());
                 
                 Evaluation saved = evaluationRepository.save(evaluation);
@@ -84,7 +84,7 @@ public class EvaluationServiceImpl implements EvaluationService {
                 Evaluation evaluation = parseAnswerEvaluationResponse(response);
                 evaluation.setTargetId(answerId);
                 evaluation.setTargetType("answer");
-                evaluation.setModelVersion("deepseek-chat");
+                evaluation.setModelVersion("deepseek-v4-pro");
                 evaluation.setCreateTime(LocalDateTime.now());
                 
                 Evaluation saved = evaluationRepository.save(evaluation);

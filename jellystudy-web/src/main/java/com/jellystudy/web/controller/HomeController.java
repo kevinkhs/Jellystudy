@@ -25,6 +25,16 @@ public class HomeController {
         List<Question> hotQuestions = questionService.getHotQuestions();
         List<KnowledgePoint> knowledgePoints = knowledgePointService.findHotKnowledgePoints();
 
+        // 动态计算每个知识点的真实问题数
+        for (KnowledgePoint kp : knowledgePoints) {
+            try {
+                List<Question> kpQuestions = questionService.getQuestionsByKnowledgePointId(kp.getId());
+                kp.setQuestionCount(kpQuestions != null ? kpQuestions.size() : 0);
+            } catch (Exception e) {
+                // 如果查询失败，保留原值
+            }
+        }
+
         model.addAttribute("latestQuestions", latestQuestions);
         model.addAttribute("hotQuestions", hotQuestions);
         model.addAttribute("knowledgePoints", knowledgePoints);

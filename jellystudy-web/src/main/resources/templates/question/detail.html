@@ -1,376 +1,561 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="layout :: head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${question.title}">问题详情</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-               background-color: #f5f5f5; color: #333; line-height: 1.6; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
-        .nav a:hover { opacity: 0.8; }
-        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin-bottom: 20px; margin-top:30px;}
-        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
-                   padding-bottom: 10px; }
-        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
-               border-radius: 4px; font-size: 13px; margin-right: 8px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
-               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
-               transition: background 0.3s; font-size: 14px; }
-        .btn:hover { background: #5568d3; }
-        .btn-danger { background: #dc3545; }
-        .btn-danger:hover { background: #c82333; }
-        .btn-success { background: #28a745; }
-        .btn-success:hover { background: #218838; }
-        .btn-sm { padding: 6px 14px; font-size: 13px; }
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
-        .form-control { width: 100%; padding: 10px 14px; border: 1px solid #ddd; border-radius: 5px;
-                       font-size: 14px; transition: border-color 0.3s; box-sizing: border-box; }
-        textarea.form-control { min-height: 120px; resize: vertical; }
-        .answer-item, .comment-item { background: #f9f9f9; padding: 15px; border-radius: 6px;
-                                      margin-top: 12px; border-left: 3px solid #667eea; }
-        .comment-item { border-left-color: #28a745; margin-left: 20px; margin-top: 8px; }
-        .like-count { color: #dc3545; font-weight: bold; }
-        .alert { padding: 12px 18px; border-radius: 5px; margin-bottom: 15px; position: relative; }
-        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        form { display: inline; }
-        .badge-easy { color: #28a745; font-weight:600; }
-        .badge-medium { color: #ffc107; font-weight:600; }
-        .badge-hard { color: #dc3545; font-weight:600; }
-        .ai-answer { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); 
-                     border-left: 3px solid #4caf50 !important; }
-        .ai-answer .author-name { color: #2e7d32; font-weight: bold; }
-        .loading-spinner { 
-            display: inline-block; width: 16px; height: 16px; 
-            border: 2px solid #fff; border-radius: 50%; 
-            border-top-color: transparent; 
-            animation: spin 1s linear infinite; 
-            margin-right: 5px; 
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        .mark-interest-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border: none;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-        }
-        .mark-interest-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
-        }
-    </style>
+    <title>问题详情 - JellyStudy</title>
 </head>
 <body>
-<div class="header">
+
+<!-- Header Navigation -->
+<div th:replace="layout :: header"></div>
+
+<!-- ========== PAGE HERO ========== -->
+<section class="page-hero">
     <div class="container">
-        <h1>🎓 JellyStudy - 知识问答系统</h1>
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/question/list">问题列表</a>
-            <a href="/question/create">提问</a>
-            <a href="/knowledge/list">知识点管理</a>
-            <a href="/question/statistics">统计信息</a>
-        </div>
+        <a href="/question/list" class="back-link">&larr; 返回问题列表</a>
+        <h1 th:text="${question.title}" style="font-size:2rem;">问题标题</h1>
     </div>
-</div>
+</section>
 
-<div class="container">
-    <div class="alert alert-error" th:if="${param.error != null}">
-        <span th:text="${param.error[0]}"></span>
-    </div>
+<!-- ========== CONTENT AREA ========== -->
+<section class="py-12">
+    <div class="container">
+        <div class="stats-grid" style="grid-template-columns:1fr; gap:2rem;">
+            <style>@media(min-width:1024px){section .stats-grid[style*="grid-template-columns:1fr"]{grid-template-columns:2fr 1fr!important;}}</style>
 
-    <div class="card" id="question-card">
-        <h2>📝 <span th:text="${question.title}">问题标题</span></h2>
+            <!-- Main Content -->
+            <div>
 
-        <div style="margin-bottom:15px;">
-            <span class="tag" th:text="${question.knowledgePointTitle}">知识点</span>
-            <button class="btn btn-sm mark-interest-btn"
-                    onclick="markInterestForQuestion()"
-                    title="标记为感兴趣的知识点">
-                📌 标记感兴趣
-            </button>
-            <span style="color:#999; margin-left:15px;">👤<span th:text="${question.author}">作者</span></span>
-            <span style="color:#999; margin-left:15px;">📅<span th:text="${#temporals.format(question.createTime, 'yyyy-MM-dd HH:mm')}">时间</span></span>
-        </div>
-
-        <div style="line-height:1.8; color:#555; background:#f9f9f9; padding:20px; border-radius:6px;
-             margin-bottom:20px;" th:text="${question.content}">
-            问题内容
-        </div>
-
-        <div style="display:flex; gap:10px; align-items:center; padding-bottom:15px; border-bottom:2px solid #f0f0f0; flex-wrap:wrap;">
-            <span>👁️<span th:text="${question.viewCount}">0</span> 浏览</span>
-            <span>❤️<span class="like-count" th:text="${question.likeCount}">0"></span> 赞</span>
-            <span>💬<span th:text="${question.answerCount}">0"></span> 回答</span>
-            <form th:action="@{/question/{id}/like(id=${question.id})}" method="post" id="likeForm">
-                <input type="hidden" name="userId" value="user_001"/>
-                <button type="submit" class="btn btn-sm btn-success" onclick="saveScrollPosition()">👍 点赞/取消</button>
-            </form>
-            <form th:action="@{/question/{id}/evaluate(id=${question.id})}" method="post" id="evalForm">
-                <button type="submit" class="btn btn-sm" style="background:#6f42c1; color:white;" onclick="saveScrollPosition()">🤖 AI 评估问题</button>
-            </form>
-            <form th:action="@{/question/{id}/ai-answer(id=${question.id})}" method="post" id="aiAnswerForm">
-                <button type="submit" class="btn btn-sm" style="background:#ff6b35; color:white;" onclick="showLoading(this)">🤖 AI 回答</button>
-            </form>
-            <a th:href="@{/question/{id}/edit(id=${question.id})}" class="btn btn-sm">编辑</a>
-            <form th:action="@{/question/{id}/delete(id=${question.id})}" method="post"
-                  style="display:inline;">
-                <button type="submit" class="btn btn-sm btn-danger"
-                        onclick="return confirm('确定要删除这个问题吗？');">删除</button>
-            </form>
-        </div>
-
-        <!-- 评估消息提示（支持Flash属性和URL参数） -->
-        <div class="alert alert-success" th:if="${evalMsg != null or param.evalMsg != null}" id="evalMsg"
-             style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; margin-top:15px;">
-            <span th:text="${evalMsg != null} ? ${evalMsg} : ${param.evalMsg[0]}">提示信息</span>
-        </div>
-        <div class="alert alert-error" th:if="${evalError != null or param.evalError != null}"
-             style="background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; margin-top:15px;">
-            <span th:text="${evalError != null} ? ${evalError} : ${param.evalError[0]}">错误信息</span>
-        </div>
-
-        <!-- Phase 3: 只显示最新的AI评估结果 -->
-        <div th:if="${latestEval != null}"
-             style="margin-top:20px; background:linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); padding:20px;
-                    border-radius:8px; border-left:4px solid #667eea;">
-            <h3 style="color:#667eea; margin-bottom:15px;">🤖 AI 智能评估 (DeepSeek)</h3>
-            <div style="background:white; padding:15px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span style="font-weight:600; color:#333;">
-                        <span th:if="${latestEval.targetType == 'question'}">📝 问题评估</span>
-                        <span th:if="${latestEval.targetType == 'answer'}">💬 回答评分</span>
-                    </span>
-                    <span th:if="${latestEval.score != null}"
-                          style="font-size:24px; font-weight:bold;"
-                          th:classappend="${latestEval.score >= 80} ? 'color:#28a745' : (${latestEval.score >= 60} ? 'color:#ffc107' : 'color:#dc3545')"
-                          th:text="${latestEval.score} + '分'"></span>
+                <!-- Error Alert -->
+                <div class="alert alert-error" th:if="${param.error != null}">
+                    <span th:text="${param.error[0]}"></span>
                 </div>
-                <div th:if="${latestEval.extractedKnowledgePoint != null}" style="margin-bottom:8px;">
-                    <strong>📚 提取知识点:</strong>
-                    <span class="tag" th:text="${latestEval.extractedKnowledgePoint}"></span>
-                </div>
-                <div th:if="${latestEval.difficultyLevel != null}" style="margin-bottom:8px;">
-                    <strong>📊 难度等级:</strong>
-                    <span th:classappend="${latestEval.difficultyLevel == 'easy'} ? 'badge-easy' : (${latestEval.difficultyLevel == 'medium'} ? 'badge-medium' : 'badge-hard')"
-                          th:text="${latestEval.difficultyLevel}"></span>
-                </div>
-                <div th:if="${latestEval.evaluationReason != null}">
-                    <strong>💡 评估说明:</strong>
-                    <p style="margin-top:5px; color:#555; line-height:1.6;" th:text="${latestEval.evaluationReason}"></p>
-                </div>
-                <div style="margin-top:10px; font-size:12px; color:#999;">
-                    🕐 <span th:text="${#temporals.format(latestEval.createTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                    | 🤖 <span th:text="${latestEval.modelVersion ?: 'DeepSeek'}"></span>
-                </div>
-            </div>
-        </div>
 
-        <div style="margin-top:25px;" id="answers-section">
-            <h3 style="margin-bottom:20px;">💬 回答 (<span th:text="${question.answers.size()}">0</span>)</h3>
-
-            <form th:action="@{/question/{id}/answer(id=${question.id})}" method="post"
-                  style="background:#f9f9f9; padding:20px; border-radius:8px; margin-bottom:25px;"
-                  id="addAnswerForm">
-                <div class="form-group">
-                    <textarea name="content" class="form-control" required
-                              placeholder="写下你的回答..." style="min-height:120px;"></textarea>
-                </div>
-                <div class="form-group">
-                    <input type="text" name="author" class="form-control" required
-                           placeholder="你的昵称" style="max-width:300px;"/>
-                </div>
-                <button type="submit" class="btn btn-success" onclick="saveScrollPosition()">✓ 提交回答</button>
-            </form>
-
-            <div th:if="${question.answers != null and !question.answers.isEmpty()}">
-                <div class="answer-item" th:each="answer, iterStat : ${question.answers}" 
-                     th:id="'answer-' + ${answer.id}"
-                     th:classappend="${answer.author == '博识尊'} ? 'ai-answer' : ''">
-                    <div style="font-weight:600; margin-bottom:8px;">
-                        👤 <span class="author-name" th:text="${answer.author}">回答者</span>
-                        <span th:if="${answer.author == '博识尊'}" 
-                              style="background:#4caf50; color:white; padding:2px 8px; border-radius:10px; font-size:11px; margin-left:8px;">AI生成</span>
-                        <span style="color:#999; font-size:13px; font-weight:normal; margin-left:10px;"
-                              th:text="${#temporals.format(answer.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
-                    </div>
-                    <p style="line-height:1.7; color:#555; margin-bottom:12px; white-space:pre-wrap;"
-                       th:text="${answer.content}">
-                        回答内容
-                    </p>
-                    <div style="display:flex; gap:10px; align-items:center; font-size:13px; flex-wrap:wrap;">
-                        <span>❤️<span class="like-count" th:text="${answer.likeCount}">0"></span></span>
-                        <form th:action="@{/question/{qid}/answer/{aid}/like(qid=${question.id}, aid=${answer.id})}"
-                              method="post">
-                            <input type="hidden" name="userId" value="user_001"/>
-                            <button type="submit" class="btn btn-sm btn-success" onclick="saveScrollPosition()">点赞</button>
-                        </form>
-                        <form th:action="@{/question/{qid}/answer/{aid}/evaluate(qid=${question.id}, aid=${answer.id})}" method="post">
-                            <button type="submit" class="btn btn-sm" style="background:#6f42c1; color:white;" onclick="saveScrollPosition()">🤖 AI 评分</button>
-                        </form>
-                        <a th:href="@{/question/{qid}/answer/{aid}/edit(qid=${question.id}, aid=${answer.id})}"
-                           class="btn btn-sm">编辑</a>
-                        <form th:action="@{/question/{qid}/answer/{aid}/delete(qid=${question.id}, aid=${answer.id})}" method="post"
-                              style="display:inline;">
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('确定删除这个回答吗？'); saveScrollPosition();">删除</button>
-                        </form>
+                <!-- Question Card -->
+                <div class="card animate-slide-up" style="padding:32px; margin-bottom:2rem;">
+                    <!-- Tags & Difficulty -->
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:24px;">
+                        <span class="tag" th:text="${question.knowledgePointTitle}">知识点</span>
+                        <button class="btn btn-sm"
+                                style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%); color:white; border:none; padding:4px 14px; border-radius:20px; font-size:13px; cursor:pointer; transition:transform 0.3s;"
+                                onmouseover="this.style.transform='scale(1.05)'"
+                                onmouseout="this.style.transform='scale(1)'">
+                            ❤️ 标记感兴趣
+                        </button>
                     </div>
 
-                    <div th:if="${answerEvals != null and answerEvals[answer.id] != null}"
-                         style="margin-top:12px; background:linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); padding:15px;
-                                border-radius:6px; border-left:3px solid #6f42c1;">
-                        <div style="font-size:12px; color:#6f42c1; font-weight:600; margin-bottom:8px;">🤖 AI 评分 (DeepSeek)</div>
-                        <div style="background:white; padding:10px; border-radius:4px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <span style="font-size:18px; font-weight:bold;"
-                                      th:classappend="${answerEvals[answer.id].score >= 80} ? 'color:#28a745' : (${answerEvals[answer.id].score >= 60} ? 'color:#ffc107' : 'color:#dc3545')"
-                                      th:text="${answerEvals[answer.id].score} + '分'"></span>
-                                <span style="font-size:11px; color:#999;"
-                                      th:text="${#temporals.format(answerEvals[answer.id].createTime, 'yyyy-MM-dd HH:mm')}"></span>
-                            </div>
-                            <div th:if="${answerEvals[answer.id].evaluationReason != null}" style="margin-top:8px; font-size:13px; color:#555; line-height:1.5;"
-                                 th:text="${answerEvals[answer.id].evaluationReason}"></div>
+                    <!-- Content -->
+                    <div class="detail-content-prose" th:text="${question.content}">问题内容</div>
+
+                    <!-- Meta Row -->
+                    <div class="detail-meta-row">
+                        <span>👤 提问者: <strong th:text="${question.author}">作者</strong></span>
+                        <span>📅 <strong th:text="${#temporals.format(question.createTime, 'yyyy-MM-dd HH:mm')}">时间</strong></span>
+                        <span>👁️ 浏览: <strong th:text="${question.viewCount}">0</strong></span>
+                    </div>
+
+                    <!-- Action Row -->
+                    <div class="answer-actions">
+                        <span style="font-size:14px; color:var(--text-muted);"><span id="viewCount" th:text="${question.viewCount}">0</span> 浏览</span>
+                        <span style="font-size:14px; color:var(--color-danger); font-weight:600;"><span id="likeCount" th:text="${question.likeCount}">0</span> 赞</span>
+                        <span style="font-size:14px; color:var(--text-muted);"><span id="answerCount" th:text="${question.answerCount}">0</span> 回答</span>
+
+                        <button type="button" id="likeBtn" class="btn btn-sm" style="background:var(--color-success);color:white;border:none;transition:all 0.3s;" onclick="likeQuestion(this)">👍 已点赞</button>
+                        <button type="button" id="evalBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.3s;"
+                                onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 4px 15px rgba(102,126,234,0.4)'"
+                                onmouseout="this.style.transform='';this.style.boxShadow=''"
+                                onclick="aiEvaluate(this)">🤖 AI 评估
+                        </button>
+                        <button type="button" id="aiAnswerBtn" class="btn btn-sm" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:white;border:none;padding:6px 16px;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.3s;"
+                                onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 4px 15px rgba(240,147,251,0.4)'"
+                                onmouseout="this.style.transform='';this.style.boxShadow=''"
+                                onclick="aiAnswer(this)">🤖 AI 回答
+                        </button>
+                        <a th:href="@{/question/{id}/edit(id=${question.id})}" class="btn btn-sm btn-outline">✏️ 编辑</a>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="if(confirm('确定要删除这个问题吗？')) deleteQuestion()">🗑️ 删除</button>
+                    </div>
+                </div>
+
+                <!-- Dynamic Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Latest AI Evaluation Card -->
+                <div th:if="${latestEval != null}" class="card animate-slide-up"
+                     style="margin-bottom:2rem; padding:24px; background:linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%); border-left:4px solid var(--color-primary);">
+                    <h3 style="color:var(--color-primary); margin-bottom:16px; font-size:18px;">🤖 AI 智能评估 (DeepSeek)</h3>
+                    <div style="background:var(--bg-card-solid); padding:20px; border-radius:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <span style="font-weight:600; color:var(--text-primary);">
+                                <span th:if="${latestEval.targetType == 'question'}">问题评估</span>
+                                <span th:if="${latestEval.targetType == 'answer'}">回答评分</span>
+                            </span>
+                            <span th:if="${latestEval.score != null}"
+                                  style="font-size:28px; font-weight:bold;"
+                                  th:classappend="${latestEval.score >= 80} ? 'difficulty-easy' : (${latestEval.score >= 60} ? 'difficulty-medium' : 'difficulty-hard')"
+                                  th:text="${latestEval.score} + '分'"></span>
+                        </div>
+                        <div th:if="${latestEval.extractedKnowledgePoint != null}" style="margin-bottom:8px; font-size:14px;">
+                            <strong>提取知识点:</strong> <span class="tag" th:text="${latestEval.extractedKnowledgePoint}"></span>
+                        </div>
+                        <div th:if="${latestEval.difficultyLevel != null}" style="margin-bottom:8px; font-size:14px;">
+                            <strong>难度等级:</strong>
+                            <span th:classappend="${latestEval.difficultyLevel == 'easy'} ? 'difficulty-easy' : (${latestEval.difficultyLevel == 'medium'} ? 'difficulty-medium' : 'difficulty-hard')"
+                                  th:text="${latestEval.difficultyLevel}"></span>
+                        </div>
+                        <div th:if="${latestEval.evaluationReason != null}" style="margin-top:8px;">
+                            <strong style="font-size:14px;">评估说明:</strong>
+                            <p style="margin-top:6px; color:var(--text-secondary); line-height:1.6; font-size:14px;" th:text="${latestEval.evaluationReason}"></p>
+                        </div>
+                        <div style="margin-top:12px; font-size:12px; color:var(--text-muted);">
+                            <span th:text="${#temporals.format(latestEval.createTime, 'yyyy-MM-dd HH:mm:ss')}"></span> | DeepSeek
                         </div>
                     </div>
+                </div>
 
-                    <div th:if="${answer.comments != null and !answer.comments.isEmpty()}" style="margin-top:15px;">
-                        <h4 style="font-size:14px; color:#666; margin-bottom:10px;">💭 评论</h4>
-                        <div class="comment-item" th:each="comment : ${answer.comments}">
-                            <div style="font-size:13px; font-weight:600; margin-bottom:5px;">
-                                👤 <span th:text="${comment.author}">评论者</span>
-                                <span style="color:#999; font-weight:normal; margin-left:8px;"
-                                      th:text="${#temporals.format(comment.createTime, 'MM-dd HH:mm')}">时间</span>
-                            </div>
-                            <p style="font-size:13px; line-height:1.6; color:#666; margin-bottom:8px;"
-                               th:text="${comment.content}">评论内容</p>
-                            <div style="font-size:12px; display:flex; gap:8px; flex-wrap:wrap;">
-                                <span>❤️<span th:text="${comment.likeCount}">0"></span></span>
-                                <form th:action="@{/question/{qid}/answer/{aid}/comment/{cid}/update
-                                   (qid=${question.id}, aid=${answer.id}, cid=${comment.id})}" method="post"
-                                      style="display:inline;">
-                                    <input type="hidden" name="content" th:value="${comment.content}"/>
-                                    <input type="hidden" name="author" th:value="${comment.author}"/>
-                                    <button type="submit" class="btn btn-sm"
-                                            style="padding:4px 10px; font-size:12px;">编辑</button>
-                                </form>
-                                <form th:action="@{/question/{qid}/answer/{aid}/comment/{cid}/delete
-                                   (qid=${question.id}, aid=${answer.id}, cid=${comment.id})}" method="post"
-                                      style="display:inline;">
-                                    <input type="hidden" name="content" th:value="${comment.content}"/>
-                                    <input type="hidden" name="author" th:value="${comment.author}"/>
-                                    <button type="submit" class="btn btn-sm btn-danger"
-                                            onclick="return confirm('确定删除这个评论吗？');"
-                                            style="padding:4px 10px; font-size:12px;">删除</button>
-                                </form>
-                            </div>
+                <!-- Answers Section -->
+                <div id="answers-section" style="margin-top:2rem;">
+                    <h2 style="font-size:1.5rem; font-weight:bold; color:var(--text-primary); margin-bottom:24px;">
+                        💬 <span th:text="${question.answers != null ? question.answers.size() : 0}">0</span> 个回答
+                    </h2>
+
+                    <!-- Add Answer Form -->
+                    <form th:action="@{/question/{id}/answer(id=${question.id})}" method="post"
+                          class="card animate-slide-up"
+                          style="margin-bottom:2rem; padding:24px;"
+                          id="addAnswerForm">
+                        <h3 style="font-size:18px; font-weight:bold; color:var(--text-primary); margin-bottom:16px;">✍️ 写出你的回答</h3>
+                        <div class="form-group">
+                            <textarea name="content" class="form-textarea-lg" required
+                                      placeholder="详细描述你的想法、解决方案或建议..."
+                                      rows="5"></textarea>
                         </div>
-                    </div>
-
-                    <form th:action="@{/question/{qid}/answer/{aid}/comment/add
-                         (qid=${question.id}, aid=${answer.id})}" method="post"
-                          style="margin-top:12px; background:#fff; padding:12px; border-radius:6px;
-                                 border:1px solid #e0e0e0;">
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <input type="text" name="content" class="form-control" required
-                                   placeholder="添加评论..." style="flex:1; min-width:200px;"/>
+                        <div class="btn-group" style="flex-wrap:wrap;">
                             <input type="text" name="author" class="form-control" required
-                                   placeholder="昵称" style="width:120px;"/>
-                            <button type="submit" class="btn btn-sm btn-success" onclick="saveScrollPosition()">评论</button>
+                                   placeholder="你的昵称" style="max-width:280px;"/>
+                            <button type="submit" class="btn btn-primary" style="padding:14px 28px;">提交回答</button>
                         </div>
                     </form>
+
+                    <!-- Answer List -->
+                    <div th:if="${question.answers != null and !question.answers.isEmpty()}">
+                        <div th:each="answer, iterStat : ${question.answers}"
+                             th:classappend="${answer.author == '博识尊'} ? 'answer-item ai-answer' : 'answer-item'"
+                             class="animate-slide-up"
+                             th:style="'animation-delay:' + (${iterStat.index} * 0.1) + 's'"
+                             th:id="'answer-' + ${answer.id}">
+
+                            <!-- Answer Header -->
+                            <div class="answer-item-header">
+                                <div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <span class="answer-author" th:text="${answer.author}">回答者</span>
+                                        <span th:if="${answer.author == '博识尊'}" class="ai-badge">🤖 AI 智能回答</span>
+                                    </div>
+                                    <span class="answer-time" th:text="${#temporals.format(answer.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                                </div>
+                                <span style="cursor:pointer; font-size:18px; color:var(--text-muted); transition:color 0.3s;"
+                                      onmouseover="this.style.color='var(--color-danger)'"
+                                      onmouseout="this.style.color='var(--text-muted)'">
+                                    ❤️ <span th:text="${answer.likeCount}">0</span>
+                                </span>
+                            </div>
+
+                            <!-- Answer Content -->
+                            <div class="answer-content" th:text="${answer.content}">回答内容</div>
+
+                            <!-- Answer Actions -->
+                            <div class="answer-actions">
+                                <button type="button" class="btn btn-sm btn-success answer-like-btn"
+                                        th:attr="data-answer-id=${answer.id}">👍 点赞</button>
+                                <button type="button" th:id="'evalBtn_' + ${answer.id}" class="btn btn-sm answer-eval-btn" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;padding:4px 12px;border-radius:16px;font-size:12px;cursor:pointer;transition:all 0.3s;"
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform=''"
+                                        th:attr="data-answer-id=${answer.id}">🤖 AI 评分
+                                </button>
+                                <a th:href="@{/question/{qid}/answer/{aid}/edit(qid=${question.id}, aid=${answer.id})}" class="btn btn-sm btn-outline">✏️ 编辑</a>
+                                <button type="button" class="btn btn-sm btn-danger answer-delete-btn"
+                                        th:attr="data-answer-id=${answer.id}">🗑️ 删除</button>
+                            </div>
+
+                            <!-- AI Rating Result -->
+                            <div th:if="${answerEvals != null and answerEvals[answer.id] != null}"
+                                 style="margin-top:16px; padding:16px; border-radius:10px; background:linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%); border-left:3px solid var(--color-secondary);">
+                                <div style="font-size:12px; color:var(--color-secondary); font-weight:600; margin-bottom:8px;">🤖 AI 评分 (DeepSeek)</div>
+                                <div style="background:var(--bg-card-solid); padding:12px; border-radius:8px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-size:20px; font-weight:bold;"
+                                              th:classappend="${answerEvals[answer.id].score >= 80} ? 'difficulty-easy' : (${answerEvals[answer.id].score >= 60} ? 'difficulty-medium' : 'difficulty-hard')"
+                                              th:text="${answerEvals[answer.id].score} + '分'"></span>
+                                        <span style="font-size:11px; color:var(--text-muted);"
+                                              th:text="${#temporals.format(answerEvals[answer.id].createTime, 'yyyy-MM-dd HH:mm')}"></span>
+                                    </div>
+                                    <div th:if="${answerEvals[answer.id].evaluationReason != null}" style="margin-top:8px; font-size:13px; color:var(--text-secondary); line-height:1.5;"
+                                         th:text="${answerEvals[answer.id].evaluationReason}"></div>
+                                </div>
+                            </div>
+
+                            <!-- Comments -->
+                            <div th:if="${answer.comments != null and !answer.comments.isEmpty()}" style="margin-top:16px;">
+                                <h4 style="font-size:14px; color:var(--text-secondary); margin-bottom:12px;">💬 评论</h4>
+                                <div th:each="comment : ${answer.comments}"
+                                     style="padding:14px; border-radius:8px; background:var(--bg-muted); margin-bottom:8px;">
+                                    <div style="font-size:13px; font-weight:600; margin-bottom:4px; color:var(--text-primary);">
+                                        <span th:text="${comment.author}">评论者</span>
+                                        <span style="color:var(--text-muted); font-weight:normal; margin-left:8px;"
+                                              th:text="${#temporals.format(comment.createTime, 'MM-dd HH:mm')}">时间</span>
+                                    </div>
+                                    <p style="font-size:13px; line-height:1.6; color:var(--text-secondary); margin-bottom:8px;"
+                                       th:text="${comment.content}">评论内容</p>
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:12px;">
+                                        <button type="button" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:2px 6px;border-radius:4px;transition:all 0.3s;"
+                                                class="comment-like-btn"
+                                                th:attr="data-answer-id=${answer.id}, data-comment-id=${comment.id}"
+                                                onmouseover="this.style.color='var(--color-danger)'"
+                                                onmouseout="this.style.color='var(--text-muted)'">❤️ <span th:text="${comment.likeCount}">0</span></button>
+                                        <form th:action="@{/question/{qid}/answer/{aid}/comment/{cid}/update(qid=${question.id}, aid=${answer.id}, cid=${comment.id})}" method="post" style="display:inline;">
+                                            <input type="hidden" name="content" th:value="${comment.content}"/>
+                                            <input type="hidden" name="author" th:value="${comment.author}"/>
+                                            <button type="submit" class="btn btn-sm btn-ghost" style="padding:4px 10px; font-size:11px;">编辑</button>
+                                        </form>
+                                        <form th:action="@{/question/{qid}/answer/{aid}/comment/{cid}/delete(qid=${question.id}, aid=${answer.id}, cid=${comment.id})}" method="post" style="display:inline;" onsubmit="return confirm('确定删除这条评论吗？')">
+                                            <button type="submit" class="btn btn-sm btn-danger" style="padding:4px 10px; font-size:11px;">删除</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add Comment Form -->
+                            <form th:action="@{/question/{qid}/answer/{aid}/comment/add(qid=${question.id}, aid=${answer.id})}" method="post"
+                                  style="margin-top:12px; padding:14px; border-radius:8px; background:var(--bg-card-solid); border:1px solid var(--border-color);">
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <input type="text" name="content" class="form-control" required
+                                           placeholder="添加评论..." style="flex:1; min-width:200px;"/>
+                                    <input type="text" name="author" class="form-control" required
+                                           placeholder="昵称" style="width:120px;"/>
+                                    <button type="submit" class="btn btn-sm btn-success">💬 评论</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- No Answers -->
+                    <div th:unless="${question.answers != null and !question.answers.isEmpty()}"
+                         class="card text-center animate-slide-up"
+                         style="padding:48px;">
+                        <p style="color:var(--text-muted); font-size:18px;">暂无回答，快来第一个回答吧！</p>
+                    </div>
                 </div>
             </div>
 
-            <div th:unless="${question.answers != null and !question.answers.isEmpty()}"
-                 style="text-align:center; color:#999; padding:40px;">
-                暂无回答，快来第一个回答吧！
-            </div>
+            <!-- Sidebar -->
+            <aside class="sidebar-sticky">
+                <div class="side-actions">
+                    <a th:href="@{/question/{id}/like(id=${question.id})}" class="sidebar-action-btn sidebar-action-btn-primary" style="text-decoration:none;">
+                        👍 点赞 <span th:text="${question.likeCount}">0</span>
+                    </a>
+                    <button class="sidebar-action-btn sidebar-action-btn-secondary">🔖 收藏问题</button>
+                    <button class="sidebar-action-btn sidebar-action-btn-muted">📢 分享问题</button>
+
+                    <!-- Related Knowledge Point -->
+                    <div class="sidebar-card" th:if="${question.knowledgePointTitle != null}">
+                        <h4>📚 相关知识点</h4>
+                        <a th:href="@{/knowledge/{id}(id=${question.knowledgePointId})}"
+                           style="display:block; color:var(--color-primary); transition:opacity 0.3s; font-size:14px;"
+                           onmouseover="this.style.opacity='0.8'"
+                           onmouseout="this.style.opacity='1'"
+                           th:text="'→ ' + ${question.knowledgePointTitle}">知识点</a>
+                    </div>
+
+                    <!-- You May Be Interested -->
+                    <div class="sidebar-card" id="recommended-section" style="display:none;">
+                        <h4>💡 你可能感兴趣</h4>
+                        <div id="recommended-questions" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+                </div>
+            </aside>
         </div>
     </div>
-</div>
+</section>
+
+<!-- Store questionId for JavaScript -->
+<input type="hidden" id="questionIdHolder" th:value="${question.id}"/>
+<input type="hidden" id="kpIdHolder" th:value="${question.knowledgePointId}"/>
+<input type="hidden" id="kpTitleHolder" th:value="${question.knowledgePointTitle}"/>
 
 <script>
-function saveScrollPosition() {
-    sessionStorage.setItem('scrollPosition', window.scrollY || window.pageYOffset);
-}
+    /* 从DOM获取问题ID，避免th:inline与JS模板字符串冲突 */
+    var questionId = document.getElementById('questionIdHolder').value;
+    var isLiked = false;
 
-function restoreScrollPosition() {
-    const pos = sessionStorage.getItem('scrollPosition');
-    if (pos) {
-        window.scrollTo(0, parseInt(pos));
-        sessionStorage.removeItem('scrollPosition');
-    }
-    
-    const hash = window.location.hash;
-    if (hash) {
-        const element = document.querySelector(hash);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    /* 自动记录知识点点击 */
+    (function() {
+        var kpId = document.getElementById('kpIdHolder').value;
+        var kpTitle = document.getElementById('kpTitleHolder').value;
+        if (kpId && kpTitle) {
+            fetch('/assistant/record-kp-click', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'kpId=' + encodeURIComponent(kpId) + '&kpTitle=' + encodeURIComponent(kpTitle)
+            }).catch(function() {});
         }
+    })();
+
+    /* 加载推荐问题 */
+    (function() {
+        fetch('/assistant/recommended-questions?limit=5&excludeQuestionId=' + questionId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success && data.recommendations && data.recommendations.length > 0) {
+                    var section = document.getElementById('recommended-section');
+                    var container = document.getElementById('recommended-questions');
+                    section.style.display = 'block';
+                    data.recommendations.forEach(function(q) {
+                        var item = document.createElement('a');
+                        item.href = '/question/' + q.id;
+                        item.style.cssText = 'display:block; padding:10px 12px; border-radius:8px; background:rgba(102,126,234,0.06); text-decoration:none; transition:all 0.2s; border-left:3px solid #667eea;';
+                        item.onmouseover = function() { this.style.background = 'rgba(102,126,234,0.12)'; this.style.transform = 'translateX(2px)'; };
+                        item.onmouseout = function() { this.style.background = 'rgba(102,126,234,0.06)'; this.style.transform = ''; };
+                        var title = document.createElement('div');
+                        title.style.cssText = 'font-size:13px; color:var(--text-primary); font-weight:500; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+                        title.textContent = q.title;
+                        var meta = document.createElement('div');
+                        meta.style.cssText = 'font-size:11px; color:var(--text-muted); display:flex; gap:8px; align-items:center;';
+                        var kpTag = document.createElement('span');
+                        kpTag.style.cssText = 'background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(118,75,162,0.15)); padding:1px 6px; border-radius:4px; color:#667eea; font-size:10px;';
+                        kpTag.textContent = q.knowledgePointTitle || '';
+                        meta.appendChild(kpTag);
+                        if (q.kpClickCount) {
+                            var heat = document.createElement('span');
+                            heat.textContent = '🔥' + q.kpClickCount;
+                            meta.appendChild(heat);
+                        }
+                        item.appendChild(title);
+                        item.appendChild(meta);
+                        container.appendChild(item);
+                    });
+                }
+            })
+            .catch(function() {});
+    })();
+
+    /* 显示提示信息 */
+    function showAlert(message, type) {
+        var container = document.getElementById('alertContainer');
+        if(!container) return;
+        var alert = document.createElement('div');
+        alert.className = 'alert ' + (type === 'success' ? 'alert-success' : 'alert-error') + ' animate-slide-up';
+        alert.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">' + (type === 'success' ? '✅' : '❌') + '</span><span>' + message + '</span></div>';
+        container.prepend(alert);
+        setTimeout(function() { if(alert.parentNode) alert.remove(); }, 5000);
     }
-}
 
-function showLoading(button) {
-    const originalText = button.innerHTML;
-    const originalDisabled = button.disabled;
-    button.innerHTML = '⏳ AI思考中(约20秒)...';
-    button.disabled = true;
-
-    const form = button.closest('form');
-    if (form) {
-        setTimeout(() => {
-            form.submit();
-        }, 100);
+    /* 设置按钮加载状态 */
+    function setButtonLoading(btn, text) {
+        btn.disabled = true;
+        btn.dataset.origText = btn.innerHTML;
+        btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-radius:50%;border-top-color:transparent;animation:spin 1s linear infinite;margin-right:6px;vertical-align:middle;"></span>' + text;
     }
 
-    setTimeout(() => {
-        if (!originalDisabled) {
-            button.disabled = false;
+    /* 恢复按钮状态 */
+    function resetButton(btn) {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origText || btn.innerHTML;
+    }
+
+    /* ========== 点赞/取消点赞问题 ========== */
+    function likeQuestion(btn) {
+        setButtonLoading(btn, '处理中...');
+        fetch('/question/' + questionId + '/like', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'userId=user_001'
+        })
+        .then(function(r) { if(!r.ok) throw new Error('请求失败'); return r.text(); })
+        .then(function() {
+            isLiked = !isLiked;
+            var countEl = document.getElementById('likeCount');
+            var currentCount = parseInt(countEl.textContent);
+            countEl.textContent = isLiked ? currentCount + 1 : Math.max(0, currentCount - 1);
+            if(isLiked) {
+                btn.style.background = 'var(--color-success)';
+                btn.innerHTML = '👍 已点赞';
+            } else {
+                btn.style.background = '#6c757d';
+                btn.innerHTML = '👍 点赞';
+            }
+            btn.disabled = false;
+            showAlert(isLiked ? '点赞成功！' : '已取消点赞', 'success');
+        })
+        .catch(function(err) {
+            console.error(err);
+            resetButton(btn);
+            showAlert('操作失败，请重试', 'error');
+        });
+    }
+
+    /* ========== AI评估问题 ========== */
+    function aiEvaluate(btn) {
+        setButtonLoading(btn, 'AI评估中...');
+        fetch('/question/' + questionId + '/evaluate', { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            resetButton(btn);
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var evalCard = doc.querySelector('.card[style*="667eea"]');
+            var msgEl = doc.querySelector('.alert-success');
+            var errEl = doc.querySelector('.alert-error');
+            var msg = msgEl ? msgEl.textContent : null;
+            var err = errEl ? errEl.textContent : null;
+            if(err && err.indexOf('失败') >= 0) {
+                showAlert(err.trim(), 'error');
+                return;
+            }
+            if(evalCard) {
+                var container = document.getElementById('alertContainer');
+                var wrapper = document.createElement('div');
+                wrapper.innerHTML = evalCard.outerHTML;
+                container.after(wrapper.firstElementChild);
+                showAlert(msg ? msg.trim() : 'AI评估完成！', 'success');
+            } else if(msg) {
+                showAlert(msg.trim(), 'success');
+                setTimeout(function() { location.reload(); }, 1500);
+            } else {
+                showAlert('评估完成，正在更新...', 'success');
+                setTimeout(function() { location.reload(); }, 1000);
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            resetButton(btn);
+            showAlert('评估服务调用失败: ' + err.message, 'error');
+        });
+    }
+
+    /* ========== AI回答 ========== */
+    function aiAnswer(btn) {
+        setButtonLoading(btn, 'AI思考中...');
+        fetch('/question/' + questionId + '/ai-answer', { method: 'POST' })
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+            resetButton(btn);
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var errEl = doc.querySelector('.alert-error');
+            var err = errEl ? errEl.textContent : null;
+            if(err && err.indexOf('失败') >= 0) {
+                showAlert(err.trim(), 'error');
+                return;
+            }
+            showAlert('AI回答生成完成！正在加载...', 'success');
+            setTimeout(function() { location.reload(); }, 1200);
+        })
+        .catch(function(err) {
+            console.error(err);
+            resetButton(btn);
+            showAlert('AI回答服务调用失败: ' + err.message, 'error');
+        });
+    }
+
+    /* ========== 删除问题 ========== */
+    function deleteQuestion() {
+        fetch('/question/' + questionId + '/delete', { method: 'POST' })
+        .then(function() { window.location.href = '/question/list'; })
+        .catch(function(err) { showAlert('删除失败: ' + err.message, 'error'); });
+    }
+
+    /* ========== 点赞回答 (事件委托) ========== */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.answer-like-btn');
+        if(btn) {
+            var answerId = btn.getAttribute('data-answer-id');
+            setButtonLoading(btn, '处理中...');
+            fetch('/question/' + questionId + '/answer/' + answerId + '/like', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'userId=user_001'
+            })
+            .then(function(r) { if(!r.ok) throw new Error('请求失败'); return r.text(); })
+            .then(function() {
+                resetButton(btn);
+                showAlert('操作成功！', 'success');
+            })
+            .catch(function(err) {
+                resetButton(btn);
+                showAlert('操作失败', 'error');
+            });
         }
-        button.innerHTML = originalText;
-    }, 30000);
+    });
 
-    return true;
-}
+    /* ========== 评分回答 (事件委托) ========== */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.answer-eval-btn');
+        if(btn) {
+            var answerId = btn.getAttribute('data-answer-id');
+            setButtonLoading(btn, '评分中...');
+            fetch('/question/' + questionId + '/answer/' + answerId + '/evaluate', { method: 'POST' })
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var errEl = doc.querySelector('.alert-error');
+                var err = errEl ? errEl.textContent : null;
+                if(err && err.indexOf('失败') >= 0) {
+                    showAlert(err.trim(), 'error');
+                    resetButton(btn);
+                } else {
+                    showAlert('AI评分完成！', 'success');
+                    setTimeout(function() { location.reload(); }, 1000);
+                }
+            })
+            .catch(function(err) {
+                resetButton(btn);
+                showAlert('评分失败: ' + err.message, 'error');
+            });
+        }
+    });
 
-function markInterestForQuestion() {
-    const knowledgePointId = '[[${question.knowledgePointId}]]';
-    const knowledgePointTitle = '[[${question.knowledgePointTitle}]]';
-    
-    if (typeof markInterest === 'function') {
-        markInterest(knowledgePointId, knowledgePointTitle);
-    } else {
-        alert('智能助手组件未加载，请刷新页面重试');
-    }
-}
+    /* ========== 删除回答 (事件委托) ========== */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.answer-delete-btn');
+        if(btn) {
+            var answerId = btn.getAttribute('data-answer-id');
+            if(!confirm('确定删除这个回答吗？')) return;
+            fetch('/question/' + questionId + '/answer/' + answerId + '/delete', { method: 'POST' })
+            .then(function() { location.reload(); })
+            .catch(function(err) { showAlert('删除失败: ' + err.message, 'error'); });
+        }
+    });
 
-window.addEventListener('load', restoreScrollPosition);
+    /* ========== 点赞评论 (事件委托) ========== */
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.comment-like-btn');
+        if(btn) {
+            var answerId = btn.getAttribute('data-answer-id');
+            var commentId = btn.getAttribute('data-comment-id');
+            var span = btn.querySelector('span');
+            var currentCount = parseInt(span.textContent) || 0;
+
+            fetch('/question/' + questionId + '/answer/' + answerId + '/comment/' + commentId + '/like', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'userId=user_001'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                console.log('[评论点赞] 响应:', data);
+                if(data.success) {
+                    var isUnlike = data.message && data.message.indexOf('取消') >= 0;
+                    span.textContent = isUnlike ? Math.max(0, currentCount - 1) : currentCount + 1;
+                    btn.style.color = isUnlike ? 'var(--text-muted)' : 'var(--color-danger)';
+                }
+            })
+            .catch(function(err) {
+                console.error('[评论点赞] 错误:', err);
+            });
+        }
+    });
 </script>
-
-<!-- 智能助手悬浮窗组件 -->
-<div th:replace="fragments/assistant-widget :: assistant-widget"></div>
-
-<!-- 智能助手JavaScript（外部文件） -->
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-<script th:src="@{/js/assistant.js}"></script>
-
 </body>
 </html>

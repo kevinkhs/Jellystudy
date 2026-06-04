@@ -1,126 +1,304 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="layout :: head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JellyStudy - 首页</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-               background-color: #f5f5f5; color: #333; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
-        .nav a:hover { opacity: 0.8; }
-        .main-content { margin-top: 30px; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin-bottom: 20px; }
-        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
-                   padding-bottom: 10px; }
-        .question-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.3s; }
-        .question-item:hover { background: #f9f9f9; border-radius: 4px; padding-left: 10px; padding-right: 10px; }
-        .question-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; line-height: 1.4; }
-        .question-meta { font-size: 13px; color: #999; display: flex; gap: 15px; flex-wrap: wrap; }
-        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
-               border-radius: 4px; font-size: 13px; margin-right: 8px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
-               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
-               transition: background 0.3s; font-size: 14px; }
-        .btn:hover { background: #5568d3; }
-        .btn-success { background: #28a745; }
-        .btn-success:hover { background: #218838; }
-        .like-count { color: #dc3545; font-weight: bold; }
-    </style>
+    <title>JellyStudy 博识尊 - 首页</title>
 </head>
 <body>
-<div class="header">
+
+<!-- Header Navigation -->
+<div th:replace="layout :: header"></div>
+
+<!-- ========== HERO SECTION — exact v0 match ========== -->
+<section class="hero-section">
+    <!-- Animated Background Blobs -->
+    <div class="hero-bg-blob hero-blob-1"></div>
+    <div class="hero-bg-blob hero-blob-2"></div>
+    <div class="hero-bg-blob hero-blob-3"></div>
+
+    <div class="container" style="position:relative;">
+        <div style="text-align:center;">
+
+            <!-- Badge -->
+            <div class="hero-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                AI 驱动的智能学习平台
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="hero-title">
+                <span class="normal-text">让知识像</span><span class="gradient-text">果冻</span><span class="normal-text">一样</span><br><span class="normal-text">清晰又通透</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="hero-subtitle">
+                JellyStudy 博识尊 — 不只是题库，而是你的 AI 学习伙伴。<br>通过智能问答、知识图谱和个性化推荐，让学习更高效、更有趣。
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="hero-cta">
+                <a href="/question/list" class="btn btn-primary btn-xl">
+                    开始探索
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+                <a href="/question/create" class="btn btn-outline btn-xl">了解更多</a>
+            </div>
+
+            <!-- Feature Pills -->
+            <div class="hero-feature-pills">
+                <div class="feature-pill">
+                    <span class="pill-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg></span>
+                    AI 智能问答
+                </div>
+                <div class="feature-pill">
+                    <span class="pill-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+                    知识图谱可视化
+                </div>
+                <div class="feature-pill">
+                    <span class="pill-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                    个性化学习路径
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== STATS SECTION — exact v0 match ========== -->
+<section class="section-padding">
     <div class="container">
-        <h1>🎓 JellyStudy - 知识问答系统</h1>
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/question/list">问题列表</a>
-            <a href="/question/create">提问</a>
-            <a href="/knowledge/list">知识点管理</a>
-            <a href="/question/statistics">统计信息</a>
-        </div>
-    </div>
-</div>
-
-<div class="main-content container">
-    <div>
-        <div class="card">
-            <h2>📝 最新问题</h2>
-            <div th:if="${latestQuestions != null and !latestQuestions.isEmpty()}">
-                <div class="question-item" th:each="q : ${latestQuestions}">
-                    <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
-                        <div class="question-title" th:text="${q.title}">问题标题</div>
-                        <div class="question-meta">
-                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
-                            <span th:if="${q.author != null}" th:text="${q.author}">作者</span>
-                            <span th:if="${q.createTime != null}" th:text="${#temporals.format(q.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
-                            <span>👁️<span th:text="${q.viewCount != null ? q.viewCount : 0}">0"></span></span>
-                            <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
-                            <span>💬<span th:text="${q.answerCount != null ? q.answerCount : 0}">0"></span></span>
-                        </div>
-                    </a>
+        <div class="stats-grid">
+            <!-- Stat 1 -->
+            <div class="stat-card animate-slide-up stagger-1">
+                <div class="stat-icon-wrapper" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 </div>
+                <div class="stat-value">2,847</div>
+                <div class="stat-label">总问题数</div>
+                <div class="stat-decorative"></div>
             </div>
-            <div th:unless="${latestQuestions != null and !latestQuestions.isEmpty()}">
-                <p style="text-align:center; color:#999; padding:30px;">暂无问题，快来提问吧！</p>
-            </div>
-        </div>
 
-        <div class="card">
-            <h2>🔥 热门问题</h2>
-            <div th:if="${hotQuestions != null and !hotQuestions.isEmpty()}">
-                <div class="question-item" th:each="q : ${hotQuestions}">
-                    <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
-                        <div class="question-title" th:text="${q.title}">问题标题</div>
-                        <div class="question-meta">
-                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
-                            <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
-                            <span>👁️<span th:text="${q.viewCount != null ? q.viewCount : 0}">0"></span></span>
-                        </div>
-                    </a>
+            <!-- Stat 2 -->
+            <div class="stat-card animate-slide-up stagger-2">
+                <div class="stat-icon-wrapper" style="background:linear-gradient(135deg,#764ba2,#667eea);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
+                <div class="stat-value">1,234</div>
+                <div class="stat-label">活跃用户</div>
+                <div class="stat-decorative"></div>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="stat-card animate-slide-up stagger-3">
+                <div class="stat-icon-wrapper" style="background:linear-gradient(135deg,#667eea,#28a745);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div class="stat-value">15,678</div>
+                <div class="stat-label">AI 对话</div>
+                <div class="stat-decorative"></div>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="stat-card animate-slide-up stagger-4">
+                <div class="stat-icon-wrapper" style="background:linear-gradient(135deg,#764ba2,#667eea);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                </div>
+                <div class="stat-value">486</div>
+                <div class="stat-label">知识点</div>
+                <div class="stat-decorative"></div>
             </div>
         </div>
     </div>
+</section>
 
-    <div>
-        <div class="card">
-            <h2>📚 热门知识点</h2>
-            <div th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}">
-                <div class="question-item" th:each="kp : ${knowledgePoints}">
-                    <a th:href="@{/question/knowledge-point/{id}(id=${kp.id})}"
-                       style="text-decoration:none; color:inherit;">
-                        <div class="question-title" th:text="${kp.title != null ? kp.title : '未命名'}">知识点标题</div>
-                        <div class="question-meta">
-                            <span class="tag" th:if="${kp.category != null}" th:text="${kp.category}">分类</span>
-                            <span>📋<span th:text="${kp.questionCount != null ? kp.questionCount : 0}">0</span> 个问题</span>
+<!-- ========== QUESTIONS SECTION (Latest + Hot) — exact v0 match ========== -->
+<section class="section-padding">
+    <div class="container">
+        <!-- Section Header -->
+        <div style="text-align:center; margin-bottom:2.5rem;">
+            <h2 style="font-size:1.875rem; font-weight:bold; color:var(--text-primary);">
+                探索<span style="background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">知识</span>
+            </h2>
+            <p style="margin-top:8px; color:var(--text-muted);">发现最新和最热门的问题</p>
+        </div>
+
+        <!-- Two Column Grid -->
+        <div class="stats-grid" style="grid-template-columns:1fr;">
+            <style>@media(min-width:1024px){section .stats-grid[style*="grid-template-columns:1fr"]{grid-template-columns:repeat(2,1fr)!important;}}</style>
+
+            <!-- Latest Questions Card -->
+            <div class="card animate-slide-up stagger-1">
+                <div class="card-header">
+                    <div class="card-dot" style="background:#667eea;"></div>
+                    <h2>最新问题</h2>
+                </div>
+                <div class="card-body">
+                    <div th:if="${latestQuestions != null and !latestQuestions.isEmpty()}">
+                        <div class="question-item" th:each="q : ${latestQuestions}">
+                            <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none;color:inherit;display:block;">
+                                <div th:if="${q.likeCount != null and q.likeCount > 5}" class="hot-badge">热</div>
+                                <div class="question-item-inner">
+                                    <div class="question-item-content">
+                                        <h3 class="question-item-title" th:text="${q.title}">问题标题</h3>
+                                        <div class="tag-list">
+                                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
+                                        </div>
+                                        <div class="question-meta">
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span th:text="${q.author != null ? q.author : '匿名'}">作者</span></span>
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span th:text="${q.createTime != null ? #temporals.format(q.createTime, 'yyyy-MM-dd HH:mm') : ''}">时间</span></span>
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> <span th:text="${q.viewCount != null ? q.viewCount : 0}">0</span></span>
+                                            <span class="meta-item" style="color:var(--color-danger);"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> <span th:text="${q.likeCount != null ? q.likeCount : 0}">0</span></span>
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span th:text="${q.answerCount != null ? q.answerCount : 0}">0</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="question-arrow">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
-                    </a>
+                    </div>
+                    <div th:unless="${latestQuestions != null and !latestQuestions.isEmpty()}" class="empty-state">
+                        暂无问题，快来提问吧！
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="card-footer-btn" onclick="window.location.href='/question/list'">
+                        查看全部
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hot Questions Card -->
+            <div class="card animate-slide-up stagger-2">
+                <div class="card-header">
+                    <div class="card-dot" style="background:#764ba2;"></div>
+                    <h2>热门问题</h2>
+                </div>
+                <div class="card-body">
+                    <div th:if="${hotQuestions != null and !hotQuestions.isEmpty()}">
+                        <div class="question-item" th:each="q : ${hotQuestions}">
+                            <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none;color:inherit;display:block;">
+                                <div th:if="${q.likeCount != null and q.likeCount > 5}" class="hot-badge">热</div>
+                                <div class="question-item-inner">
+                                    <div class="question-item-content">
+                                        <h3 class="question-item-title" th:text="${q.title}">问题标题</h3>
+                                        <div class="tag-list">
+                                            <span class="tag" th:if="${q.knowledgePointTitle != null}" th:text="${q.knowledgePointTitle}">知识点</span>
+                                        </div>
+                                        <div class="question-meta">
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <span th:text="${q.author != null ? q.author : '匿名'}">作者</span></span>
+                                            <span class="meta-item" style="color:var(--color-danger);"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> <span th:text="${q.likeCount != null ? q.likeCount : 0}">0</span></span>
+                                            <span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> <span th:text="${q.viewCount != null ? q.viewCount : 0}">0</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="question-arrow">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div th:unless="${hotQuestions != null and !hotQuestions.isEmpty()}" class="empty-state">
+                        暂无热门问题
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="card-footer-btn" onclick="window.location.href='/question/list'">
+                        查看全部
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
+</section>
 
-        <div class="card" style="text-align:center;">
-            <h2>🚀 快速开始</h2>
-            <p style="margin-bottom:15px; color:#666;">开始你的学习之旅</p>
-            <a href="/question/create" class="btn btn-success" style="width:100%; margin-bottom:10px;">📝 提问</a>
-            <a href="/knowledge/list" class="btn" style="width:100%;">📚 浏览知识点</a>
+<!-- ========== KNOWLEDGE SIDEBAR + QUICK ACTIONS — exact v0 match ========== -->
+<section class="section-padding">
+    <div class="container">
+        <div class="stats-grid" style="grid-template-columns:1fr;">
+            <style>@media(min-width:1024px){section .stats-grid[style*="grid-template-columns:1fr"]{grid-template-columns:2fr 1fr!important;}}</style>
+
+            <!-- Knowledge Points (Left, 2/3) -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg,#667eea,#764ba2);">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+                        </div>
+                        <h2>热门知识点</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="kp-grid" th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}">
+                            <div class="kp-item" th:each="kp, iterStat : ${knowledgePoints}">
+                                <a th:href="@{/knowledge/{id}(id=${kp.id})}" style="text-decoration:none;color:inherit;display:flex;align-items:center;justify-content:space-between;width:100%;">
+                                    <div class="kp-item-left">
+                                        <span class="kp-rank">#<span th:text="${iterStat.index + 1}">1</span></span>
+                                        <span class="kp-name" th:text="${kp.title != null ? kp.title : '未命名'}">知识点名称</span>
+                                    </div>
+                                    <div class="kp-meta">
+                                        <span th:text="${kp.questionCount != null ? kp.questionCount : 0}">0</span> 问题
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div th:unless="${knowledgePoints != null and !knowledgePoints.isEmpty()}" class="empty-state">暂无知识点数据</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar (Right, 1/3) -->
+            <div style="display:flex; flex-direction:column; gap:1.5rem;">
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 style="font-size:18px;">快速开始</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions-grid">
+                            <a href="/question/create" class="quick-action-btn">
+                                <span class="quick-action-icon">📝</span>
+                                <span class="quick-action-label">提问</span>
+                                <span class="quick-action-desc">分享你的问题</span>
+                            </a>
+                            <a href="/knowledge/list" class="quick-action-btn">
+                                <span class="quick-action-icon">🔍</span>
+                                <span class="quick-action-label">搜索</span>
+                                <span class="quick-action-desc">查找知识点</span>
+                            </a>
+                            <a href="/question/statistics" class="quick-action-btn">
+                                <span class="quick-action-icon">📊</span>
+                                <span class="quick-action-label">统计</span>
+                                <span class="quick-action-desc">学习数据</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Promotion Card -->
+                <div class="promo-card">
+                    <div style="position:relative; z-index:1;">
+                        <div class="promo-card-subtitle">AI 学习助手</div>
+                        <h3>智能问答全面升级</h3>
+                        <p>支持代码解释、知识图谱关联、个性化学习建议</p>
+                        <button class="promo-card-btn" onclick="toggleAssistant()">立即体验</button>
+                    </div>
+                    <div class="promo-decorative-circle"></div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- 智能助手悬浮窗组件 -->
+<!-- Footer -->
+<div th:replace="layout :: footer"></div>
+
+<!-- AI Assistant Widget -->
 <div th:replace="fragments/assistant-widget :: assistant-widget"></div>
 
-<!-- 智能助手JavaScript（外部文件） -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script th:src="@{/js/assistant.js}"></script>
 

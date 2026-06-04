@@ -1,98 +1,136 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head th:replace="layout :: head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${'知识点详情 - ' + (knowledgePoint != null ? knowledgePoint.title : '')}">知识点详情</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-               background-color: #f5f5f5; color: #333; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .nav { display: flex; gap: 30px; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; transition: opacity 0.3s; padding: 5px 0; }
-        .nav a:hover { opacity: 0.8; }
-        .card { background: white; border-radius: 8px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                margin-top:30px;}
-        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #f0f0f0;
-                   padding-bottom: 10px; }
-        .btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white;
-               text-decoration: none; border-radius: 5px; border: none; cursor: pointer;
-               transition: background 0.3s; font-size: 14px; }
-        .btn:hover { background: #5568d3; }
-        .btn-danger { background: #dc3545; }
-        .btn-danger:hover { background: #c82333; }
-        .kp-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white; padding: 30px; border-radius: 12px; margin-bottom: 25px; }
-        .kp-header h2 { color: white; border-color: rgba(255,255,255,0.3); margin-bottom:15px; }
-        .kp-meta { display: flex; gap: 20px; flex-wrap: wrap; opacity: 0.9; }
-        .question-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.3s; }
-        .question-item:hover { background: #f9f9f9; border-radius: 4px; padding-left: 10px; padding-right: 10px; }
-        .question-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px; line-height: 1.4; }
-        .question-meta { font-size: 13px; color: #999; display: flex; gap: 15px; flex-wrap: wrap; }
-        .tag { display: inline-block; background: #e8f4fd; color: #1976d2; padding: 4px 12px;
-               border-radius: 4px; font-size: 13px; margin-right: 8px; }
-        .like-count { color: #dc3545; font-weight: bold; }
-    </style>
+    <title>知识点详情 - JellyStudy</title>
 </head>
 <body>
-<div class="header">
+
+<!-- Header Navigation -->
+<div th:replace="layout :: header"></div>
+
+<!-- ========== PAGE HERO ========== -->
+<section class="page-hero">
     <div class="container">
-        <h1>🎓 JellyStudy - 知识问答系统</h1>
-        <div class="nav">
-            <a href="/">首页</a>
-            <a href="/question/list">问题列表</a>
-            <a href="/question/create">提问</a>
-            <a href="/knowledge/list">知识点管理</a>
-            <a href="/question/statistics">统计信息</a>
-        </div>
+        <a href="/knowledge/list" class="back-link">&larr; 返回知识点库</a>
+        <h1 th:text="${knowledgePoint != null ? knowledgePoint.title : '知识点详情'}">知识点名称</h1>
+        <p th:text="${knowledgePoint != null ? knowledgePoint.description : ''}">描述信息</p>
     </div>
-</div>
+</section>
 
-<div class="container">
-    <div class="kp-header" th:if="${knowledgePoint != null}">
-        <h2>📚 <span th:text="${knowledgePoint.title}">知识点名称</span></h2>
-        <p style="margin-bottom:15px; line-height:1.6;" th:text="${knowledgePoint.description}">描述信息</p>
-        <div class="kp-meta">
-            <span>🏷️ 分类：<span th:text="${knowledgePoint.category}">分类</span></span>
-            <span>📋 问题数：<span th:text="${questions != null ? questions.size() : 0}">0"></span></span>
-            <span>🕒 创建时间：<span th:text="${#temporals.format(knowledgePoint.createTime, 'yyyy-MM-dd')}">时间</span></span>
-        </div>
-    </div>
+<!-- ========== CONTENT AREA ========== -->
+<section class="py-12">
+    <div class="container">
+        <div class="stats-grid" style="grid-template-columns:1fr; gap:2rem;">
+            <style>@media(min-width:1024px){section .stats-grid[style*="grid-template-columns:1fr"]{grid-template-columns:2fr 1fr!important;}}</style>
 
-    <div class="card">
-        <h2>📝 相关问题列表</h2>
-        <div th:if="${questions != null and !questions.isEmpty()}">
-            <div class="question-item" th:each="q : ${questions}">
-                <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none; color:inherit;">
-                    <div class="question-title" th:text="${q.title}">问题标题</div>
-                    <div class="question-meta">
-                        <span th:if="${q.author != null}" th:text="${q.author}">作者</span>
-                        <span th:if="${q.createTime != null}" th:text="${#temporals.format(q.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
-                        <span>❤️<span class="like-count" th:text="${q.likeCount != null ? q.likeCount : 0}">0"></span></span>
-                        <span>💬<span th:text="${q.answerCount != null ? q.answerCount : 0}">0"></span></span>
+            <!-- Main Content -->
+            <div>
+
+                <!-- Knowledge Detail Card -->
+                <div class="card animate-slide-up" style="padding:32px; margin-bottom:2rem;">
+                    <!-- Meta Info -->
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:32px;">
+                        <span class="tag" th:if="${knowledgePoint != null}" th:text="${knowledgePoint.category}">分类</span>
+                        <span style="font-size:13px; color:var(--text-muted);">
+                            创建时间: <strong style="color:var(--text-secondary);" th:text="${knowledgePoint != null ? #temporals.format(knowledgePoint.createTime, 'yyyy-MM-dd') : '--'}">--</strong>
+                        </span>
                     </div>
-                </a>
-            </div>
-        </div>
-        <div th:unless="${questions != null and !questions.isEmpty()}">
-            <p style="text-align:center; color:#999; padding:30px;">暂无相关的问题</p>
-        </div>
 
-        <div style="margin-top:25px; display:flex; gap:10px;">
-            <a th:href="@{/knowledge/{id}/edit(id=${knowledgePoint.id})}" class="btn">✏️ 编辑</a>
-            <form th:action="@{/knowledge/{id}/delete(id=${knowledgePoint.id})}"
-                  method="post" onsubmit="return confirm('确定要删除这个知识点吗？');"
-                  style="display:inline;">
-                <button type="submit" class="btn btn-danger">🗑️ 删除</button>
-            </form>
-            <a href="/knowledge/list" class="btn">← 返回列表</a>
+                    <!-- Detail Content -->
+                    <div class="prose" th:if="${knowledgePoint != null and knowledgePoint.description != null and knowledgePoint.description != ''}">
+                        <p style="line-height:1.8; margin-bottom:1em; color:rgba(232,232,240,0.85);"
+                           th:text="${knowledgePoint.description}">内容</p>
+                    </div>
+
+                    <div th:unless="${knowledgePoint != null and knowledgePoint.description != null and knowledgePoint.description != ''}"
+                         style="color:var(--text-muted); text-align:center; padding:24px;">
+                        暂无详细内容
+                    </div>
+                </div>
+
+                <!-- Related Questions -->
+                <div style="margin-bottom:2rem;">
+                    <h3 style="font-size:1.5rem; font-weight:bold; color:var(--text-primary); margin-bottom:24px;">
+                        💬 相关问题 (<span th:text="${questions != null ? questions.size() : 0}">0</span>)
+                    </h3>
+
+                    <div th:if="${questions != null and !questions.isEmpty()}">
+                        <div th:each="q, iter : ${questions}"
+                             class="card animate-slide-up"
+                             style="margin-bottom:12px; padding:20px;"
+                             th:style="'animation-delay:' + (${iter.index} * 0.08) + 's'">
+                            <a th:href="@{/question/{id}(id=${q.id})}" style="text-decoration:none;color:inherit;display:block;">
+                                <h4 style="font-weight:bold; color:var(--text-primary); margin-bottom:8px; transition:color 0.3s;"
+                                    onmouseover="this.style.color='var(--color-primary)'"
+                                    onmouseout="this.style.color='var(--text-primary)'"
+                                    th:text="${q.title}">问题标题</h4>
+                                <div style="display:flex; gap:16px; font-size:13px; color:var(--text-muted);">
+                                    <span th:if="${q.author != null}" th:text="${'👤 ' + q.author}">作者</span>
+                                    <span th:if="${q.createTime != null}" th:text="${'📅 ' + #temporals.format(q.createTime, 'yyyy-MM-dd HH:mm')}">时间</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div th:unless="${questions != null and !questions.isEmpty()}"
+                         class="card text-center animate-slide-up"
+                         style="padding:40px;">
+                        <p style="color:var(--text-muted); font-size:16px;">暂无相关的问题</p>
+                    </div>
+
+                    <a href="/question/list"
+                       style="display:block; margin-top:20px; text-align:center; color:var(--color-primary); font-weight:bold; transition:opacity 0.3s;"
+                       onmouseover="this.style.opacity='0.8'"
+                       onmouseout="this.style.opacity='1'">
+                        查看所有相关问题 &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <aside class="sidebar-sticky">
+                <div class="side-actions">
+                    <button class="sidebar-action-btn sidebar-action-btn-primary">❤️ 点赞</button>
+                    <button class="sidebar-action-btn sidebar-action-btn-secondary">🔖 收藏</button>
+                    <a th:if="${knowledgePoint != null}"
+                       th:href="@{/knowledge/{id}/edit(id=${knowledgePoint.id})}"
+                       class="sidebar-action-btn sidebar-action-btn-accent">
+                        ✏️ 编辑
+                    </a>
+
+                    <!-- Statistics -->
+                    <div class="sidebar-card">
+                        <h4>📊 统计信息</h4>
+                        <div style="display:flex; flex-direction:column; gap:12px; font-size:14px;">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="color:var(--text-muted);">相关问题数</span>
+                                <span style="font-weight:bold; color:var(--text-primary);" th:text="${questions != null ? questions.size() : 0}">0</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="color:var(--text-muted);">浏览次数</span>
+                                <span style="font-weight:bold; color:var(--text-primary);">1,234</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="color:var(--text-muted);">收藏次数</span>
+                                <span style="font-weight:bold; color:var(--text-primary);">89</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete -->
+                    <form th:if="${knowledgePoint != null}"
+                          th:action="@{/knowledge/{id}/delete(id=${knowledgePoint.id})}"
+                          method="post"
+                          onsubmit="return confirm('确定要删除这个知识点吗？');">
+                        <button type="submit" class="sidebar-action-btn sidebar-action-btn-danger" style="width:100%;">🗑️ 删除知识点</button>
+                    </form>
+                </div>
+            </aside>
         </div>
     </div>
-</div>
+</section>
+
 </body>
 </html>

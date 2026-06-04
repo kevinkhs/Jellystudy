@@ -1,8 +1,10 @@
 package com.jellystudy.web.controller;
 
 import com.jellystudy.api.entity.KnowledgePoint;
+import com.jellystudy.api.entity.Question;
 import com.jellystudy.api.service.EvaluationService;
 import com.jellystudy.api.service.KnowledgePointService;
+import com.jellystudy.api.service.QuestionService;
 import com.jellystudy.web.dto.AIRequestMessage;
 import com.jellystudy.web.dto.AIResponseMessage;
 import com.jellystudy.web.service.AIMessageProducer;
@@ -29,6 +31,9 @@ public class AssistantController {
 
     @DubboReference(version = "1.0.0", group = "knowledge-point", check = false)
     private KnowledgePointService knowledgePointService;
+
+    @DubboReference(version = "1.0.0", group = "question", check = false)
+    private QuestionService questionService;
 
     @Autowired
     private AssistantCacheService cacheService;
@@ -315,6 +320,102 @@ public class AssistantController {
             response.put("error", "清除失败: " + e.getMessage());
         }
 
+        return response;
+    }
+
+    /**
+     * 记录知识点点击（浏览问题时自动调用）
+     */
+    @PostMapping("/record-kp-click")
+    @ResponseBody
+    public Map<String, Object> recordKnowledgePointClick(@RequestParam String kpId,
+                                                          @RequestParam String kpTitle) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            long count = cacheService.recordKnowledgePointClick(kpId, kpTitle);
+            response.put("success", true);
+            response.put("clickCount", count);
+        } catch (Exception e) {
+            logger.error("记录知识点点击失败", e);
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * 获取知识图谱数据（所有知识点点击统计）
+     */
+    @GetMapping("/graph-data")
+    @ResponseBody
+    public Map<String, Object> getGraphData() {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> stats = cacheService.getKnowledgePointClickStats();
+            response.put("success", true);
+            response.put("nodes", stats);
+        } catch (Exception e) {
+            logger.error("获取图谱数据失败", e);
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        return response;
+    }
+
+    /**
+     * 知识图谱可视化页面
+     */
+    @GetMapping("/knowledge-graph")
+    public String knowledgeGraphPage() {
+        return "assistant/knowledge-graph";
+    }
+
+    /**
+     * 根据知识点点击频率推荐问题（点击越多排越前）
+     */
+    @GetMapping("/recommended-questions")
+    @ResponseBody
+    public Map<String, Object> getRecommendedQuestions(@RequestParam(defaultValue = "5") int limit,
+                                                       @RequestParam(required = false) String excludeQuestionId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> stats = cacheService.getKnowledgePointClickStats();
+            List<Map<String, Object>> recommendations = new ArrayList<>();
+            Set<String> addedQuestionIds = new HashSet<>();
+
+            for (Map<String, Object> kpStat : stats) {
+                if (recommendations.size() >= limit) break;
+                String kpId = (String) kpStat.get("id");
+                try {
+                    List<Question> questions = questionService.getQuestionsByKnowledgePointId(kpId);
+                    for (Question q : questions) {
+                        if (recommendations.size() >= limit) break;
+                        if (addedQuestionIds.contains(q.getId())) continue;
+                        if (excludeQuestionId != null && excludeQuestionId.equals(q.getId())) continue;
+                        addedQuestionIds.add(q.getId());
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("id", q.getId());
+                        item.put("title", q.getTitle());
+                        item.put("knowledgePointTitle", q.getKnowledgePointTitle());
+                        item.put("knowledgePointId", q.getKnowledgePointId());
+                        item.put("viewCount", q.getViewCount());
+                        item.put("likeCount", q.getLikeCount());
+                        item.put("answerCount", q.getAnswerCount());
+                        item.put("kpClickCount", kpStat.get("clickCount"));
+                        recommendations.add(item);
+                    }
+                } catch (Exception e) {
+                    logger.warn("查询知识点{}的问题失败: {}", kpId, e.getMessage());
+                }
+            }
+
+            response.put("success", true);
+            response.put("recommendations", recommendations);
+        } catch (Exception e) {
+            logger.error("获取推荐问题失败", e);
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
         return response;
     }
 
