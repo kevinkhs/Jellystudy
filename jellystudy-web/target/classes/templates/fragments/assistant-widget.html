@@ -73,12 +73,30 @@
         </div>
 
         <!-- 知识图谱内容区 -->
-        <div id="tab-knowledge" class="tab-content" style="flex:1; display:none; align-items:center; justify-content:center; text-align:center; padding:32px;">
-            <div style="margin-bottom:16px; width:64px; height:64px; border-radius:16px; background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.2)); display:inline-flex; align-items:center; justify-content:center;">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <div id="tab-knowledge" class="tab-content" style="flex:1; display:none; flex-direction:column; padding:16px; overflow-y:auto;">
+            <div style="text-align:center; margin-bottom:16px;">
+                <div style="margin-bottom:12px; width:56px; height:56px; border-radius:14px; background:linear-gradient(135deg,rgba(102,126,234,0.2),rgba(118,75,162,0.2)); display:inline-flex; align-items:center; justify-content:center;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <h4 style="font-size:15px; font-weight:600; color:rgba(255,255,255,0.95); margin-bottom:4px;">知识图谱可视化</h4>
+                <p style="font-size:12px; color:rgba(255,255,255,0.45); margin-bottom:12px;">基于你的浏览记录生成知识图谱</p>
+                <a href="/assistant/knowledge-graph" target="_blank"
+                   style="display:inline-flex; align-items:center; gap:6px; padding:10px 24px; border-radius:12px; border:none;
+                          background:linear-gradient(135deg,#667eea,#764ba2); color:white; cursor:pointer; font-size:14px; font-weight:600;
+                          text-decoration:none; transition:all 0.3s;"
+                   onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 15px rgba(102,126,234,0.4)'"
+                   onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    进入图谱
+                </a>
             </div>
-            <h4 style="font-size:16px; font-weight:600; color:rgba(255,255,255,0.95); margin-bottom:8px;">知识图谱可视化</h4>
-            <p style="font-size:14px; color:rgba(255,255,255,0.45);">即将上线！将零散知识点串联成网络，让学习更有条理。</p>
+            <!-- 最近浏览的知识点列表 -->
+            <div id="recent-kp-list" style="margin-top:8px;">
+                <h5 style="font-size:13px; color:rgba(255,255,255,0.6); margin-bottom:8px;">最近浏览的知识点</h5>
+                <div id="recent-kp-items" style="display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:12px; color:rgba(255,255,255,0.35);">浏览问题后将自动记录</p>
+                </div>
+            </div>
         </div>
 
         <!-- 输入区域 -->

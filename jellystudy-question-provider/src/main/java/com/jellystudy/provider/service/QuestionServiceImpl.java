@@ -454,6 +454,11 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    public int countByKnowledgePointId(String knowledgePointId) {
+        return questionRepository.countByKnowledgePointId(knowledgePointId);
+    }
+
+    @Override
     public List<Question> getTopLikedQuestions(int limit) {
         List<String> topIds = redisCacheService.getTopQuestionIds(limit);
         if (!topIds.isEmpty()) {

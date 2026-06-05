@@ -11,6 +11,8 @@ public interface QuestionRepository extends MongoRepository<Question, String> {
 
     List<Question> findByKnowledgePointId(String knowledgePointId);
 
+    int countByKnowledgePointId(String knowledgePointId);
+
     List<Question> findAllByOrderByLikeCountDescViewCountDesc();
 
     List<Question> findAllByOrderByCreateTimeDesc();

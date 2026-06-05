@@ -239,7 +239,34 @@ async function removeInterest(knowledgePointId) {
 
 async function loadInterestedPoints() {
     try {
-        await fetch('/assistant/get-interested-points');
+        // 加载知识点点击统计，显示最近浏览列表
+        const response = await fetch('/assistant/graph-data');
+        const data = await response.json();
+
+        if (data.success && data.nodes && data.nodes.length > 0) {
+            const container = document.getElementById('recent-kp-items');
+            if (container) {
+                container.innerHTML = '';
+                // 只显示最近5个
+                const recent = data.nodes.slice(0, 5);
+                recent.forEach(node => {
+                    const item = document.createElement('a');
+                    item.href = '/knowledge/' + node.id;
+                    item.target = '_blank';
+                    item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-radius:8px; background:rgba(255,255,255,0.05); text-decoration:none; transition:all 0.2s; cursor:pointer;';
+                    item.onmouseover = function() { this.style.background = 'rgba(102,126,234,0.15)'; };
+                    item.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.05)'; };
+                    item.innerHTML = '<span style="font-size:13px; color:rgba(255,255,255,0.85); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">' + escapeHtml(node.title) + '</span>' +
+                        '<span style="font-size:11px; color:rgba(255,255,255,0.4); flex-shrink:0;">' + node.clickCount + '次</span>';
+                    container.appendChild(item);
+                });
+            }
+        } else {
+            const container = document.getElementById('recent-kp-items');
+            if (container) {
+                container.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.35);">浏览问题后将自动记录</p>';
+            }
+        }
     } catch (e) {
         // 静默处理
     }

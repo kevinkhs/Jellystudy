@@ -48,6 +48,8 @@ public interface QuestionService {
 
     int getTotalLikeCount();
 
+    int countByKnowledgePointId(String knowledgePointId);
+
     List<Question> getTopLikedQuestions(int limit);
 
     List<Answer> getTopLikedAnswers(int limit);

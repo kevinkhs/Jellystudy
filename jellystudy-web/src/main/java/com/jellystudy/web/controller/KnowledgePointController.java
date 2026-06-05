@@ -23,6 +23,10 @@ public class KnowledgePointController {
     @GetMapping("/list")
     public String list(Model model) {
         List<KnowledgePoint> knowledgePoints = knowledgePointService.getAllKnowledgePoints();
+        for (KnowledgePoint kp : knowledgePoints) {
+            int count = questionService.countByKnowledgePointId(kp.getId());
+            kp.setQuestionCount(count);
+        }
         model.addAttribute("knowledgePoints", knowledgePoints);
         return "knowledge/list";
     }

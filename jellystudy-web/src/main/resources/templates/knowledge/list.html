@@ -511,7 +511,7 @@
 
         <div th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}" class="card-grid" id="cardGrid">
             <div th:each="kp, iter : ${knowledgePoints}"
-                 th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 40 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 25 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 10 ? 'rare' : 'common')))}"
+                 th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 20 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 10 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 5 ? 'rare' : 'common')))}"
                  th:class="'card-perspective rarity-' + ${cardRarity}"
                  th:attr="data-category=${kp.category}, data-rarity=${cardRarity}, data-title=${kp.title}, data-is-benghuai=${isBenghuai}"
                  th:style="'animation: slideUp 0.5s ease-out ' + (${iter.index} * 0.05) + 's both;'"
@@ -523,11 +523,11 @@
                         <div class="card-top-bar"></div>
                         <div class="card-content">
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                                <span class="rarity-badge" th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 40 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 25 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 10 ? 'rare' : 'common')))}" th:text="${cardRarity == 'legendary' ? '传说' : (cardRarity == 'epic' ? '史诗' : (cardRarity == 'rare' ? '稀有' : '普通'))}">普通</span>
+                                <span class="rarity-badge" th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 20 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 10 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 5 ? 'rare' : 'common')))}" th:text="${cardRarity == 'legendary' ? '传说' : (cardRarity == 'epic' ? '史诗' : (cardRarity == 'rare' ? '稀有' : '普通'))}">普通</span>
                                 <div style="display:flex; gap:2px;">
+                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 5) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
                                     <svg th:if="${(kp.questionCount != null and kp.questionCount >= 10) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
-                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 25) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
-                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 40) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 20) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
                                     <svg th:if="${kp.title != null and kp.title.contains('崩坏')}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
                                 </div>
                             </div>

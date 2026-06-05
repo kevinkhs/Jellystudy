@@ -3,114 +3,722 @@
 <head th:replace="layout :: head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>知识点库 - JellyStudy</title>
+    <title>知识图鉴 - JellyStudy</title>
 </head>
 <body>
 
 <!-- Header Navigation -->
 <div th:replace="layout :: header"></div>
 
-<!-- ========== PAGE HERO ========== -->
-<section class="page-hero">
-    <div class="container">
-        <div class="animate-slide-up">
-            <h1>知识点库</h1>
-            <p>系统地学习各个领域的知识点，提升你的技能</p>
+<style>
+    /* ===== 卡牌系统核心样式 ===== */
+    .gacha-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 64px 0 48px;
+    }
+    .gacha-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, transparent 50%, rgba(118,75,162,0.08) 100%);
+    }
+    .gacha-hero .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        animation: float 6s ease-in-out infinite;
+    }
+    .gacha-hero .orb-1 {
+        top: -40px; left: -40px; width: 300px; height: 300px;
+        background: rgba(102,126,234,0.15);
+    }
+    .gacha-hero .orb-2 {
+        bottom: -60px; right: -60px; width: 400px; height: 400px;
+        background: rgba(118,75,162,0.12);
+        animation-delay: 2s;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    /* 收集进度条 */
+    .progress-bar-wrap {
+        max-width: 420px;
+        margin: 0 auto 32px;
+    }
+    .progress-bar-track {
+        height: 10px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 999px;
+        transition: width 0.6s ease;
+    }
+
+    /* 抽卡按钮 */
+    .gacha-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 36px;
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white;
+        border: none;
+        border-radius: 16px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 30px rgba(245,158,11,0.3);
+        transition: all 0.3s;
+    }
+    .gacha-btn:hover {
+        transform: scale(1.06);
+        box-shadow: 0 12px 40px rgba(245,158,11,0.45);
+    }
+    .gacha-btn::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.2), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .gacha-btn:hover::after { opacity: 1; }
+
+    /* 稀有度筛选栏 */
+    .rarity-filter-bar {
+        background: rgba(15,15,26,0.6);
+        border-top: 1px solid rgba(255,255,255,0.06);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        padding: 16px 0;
+        backdrop-filter: blur(12px);
+    }
+    .rarity-btn {
+        padding: 8px 18px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s;
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.5);
+    }
+    .rarity-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    .rarity-btn.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102,126,234,0.35);
+    }
+    .rarity-btn.active-rare {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        box-shadow: 0 4px 15px rgba(59,130,246,0.35);
+    }
+    .rarity-btn.active-epic {
+        background: linear-gradient(135deg, #a855f7, #7c3aed);
+        color: white;
+        box-shadow: 0 4px 15px rgba(168,85,247,0.35);
+    }
+    .rarity-btn.active-legendary {
+        background: linear-gradient(135deg, #f59e0b, #ef4444);
+        color: white;
+        box-shadow: 0 4px 15px rgba(245,158,11,0.35);
+    }
+
+    /* 卡牌网格 */
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    @media (min-width: 768px) {
+        .card-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+    }
+
+    /* 3D 翻转卡牌 */
+    .card-perspective {
+        perspective: 1000px;
+        cursor: pointer;
+    }
+    .card-inner {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
+    }
+    .card-inner.flipped {
+        transform: rotateY(180deg);
+    }
+    .card-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 2px solid rgba(255,255,255,0.08);
+    }
+    .card-back {
+        transform: rotateY(180deg);
+    }
+
+    /* 稀有度配色 */
+    .rarity-common .card-face { border-color: rgba(148,163,184,0.3); }
+    .rarity-common .card-glow { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rarity-common .card-top-bar { background: linear-gradient(90deg, #94a3b8, #64748b); }
+    .rarity-common .rarity-badge { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rarity-common .rarity-text { color: #94a3b8; }
+    .rarity-common .card-icon-box { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: 0 8px 25px rgba(148,163,184,0.3); }
+
+    .rarity-rare .card-face { border-color: rgba(59,130,246,0.4); }
+    .rarity-rare .card-glow { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .rarity-rare .card-top-bar { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+    .rarity-rare .rarity-badge { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .rarity-rare .rarity-text { color: #60a5fa; }
+    .rarity-rare .card-icon-box { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 8px 25px rgba(59,130,246,0.35); }
+
+    .rarity-epic .card-face { border-color: rgba(168,85,247,0.4); }
+    .rarity-epic .card-glow { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .rarity-epic .card-top-bar { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+    .rarity-epic .rarity-badge { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .rarity-epic .rarity-text { color: #c084fc; }
+    .rarity-epic .card-icon-box { background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 8px 25px rgba(168,85,247,0.35); }
+
+    .rarity-legendary .card-face { border-color: rgba(245,158,11,0.4); }
+    .rarity-legendary .card-glow { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .rarity-legendary .card-top-bar { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+    .rarity-legendary .rarity-badge { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .rarity-legendary .rarity-text { color: #fbbf24; }
+    .rarity-legendary .card-icon-box { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 8px 25px rgba(245,158,11,0.35); }
+
+    /* 卡牌正面内容 */
+    .card-glow {
+        position: absolute;
+        inset: 0;
+        opacity: 0.15;
+    }
+    .card-top-bar {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+    }
+    .card-content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 16px;
+        background: rgba(15,15,26,0.95);
+    }
+    .rarity-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 999px;
+        color: white;
+    }
+    .card-icon-box {
+        width: 72px;
+        height: 72px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto;
+        transition: transform 0.3s;
+    }
+    .card-perspective:hover .card-icon-box {
+        transform: scale(1.12);
+    }
+    .card-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.95);
+        margin-top: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .card-desc {
+        font-size: 12px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.5;
+    }
+    .card-meta {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+    }
+    .card-meta .cat { color: rgba(255,255,255,0.35); }
+    .card-meta .level { font-weight: 700; }
+
+    /* 悬停发光 */
+    .card-face::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        box-shadow: 0 0 40px rgba(102,126,234,0.3);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    .card-perspective:hover .card-face::after { opacity: 1; }
+
+    /* 卡牌背面 */
+    .card-back-content {
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+        background: rgba(15,15,26,0.95);
+    }
+    .card-back-content::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+    }
+    .card-back-icon {
+        position: relative;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        color: #667eea;
+    }
+    .card-back-title {
+        position: relative;
+        font-size: 18px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.95);
+        margin-bottom: 8px;
+    }
+    .card-back-desc {
+        position: relative;
+        font-size: 13px;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 16px;
+        line-height: 1.5;
+    }
+    .card-back-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: opacity 0.3s;
+    }
+    .card-back-link:hover { opacity: 0.85; }
+
+    /* 抽卡动画遮罩 */
+    .gacha-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10,10,26,0.92);
+        backdrop-filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s;
+    }
+    .gacha-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+    .gacha-result-card {
+        position: relative;
+        width: 260px;
+        aspect-ratio: 3/4;
+        border-radius: 20px;
+        overflow: hidden;
+        animation: gachaBounce 0.6s ease-out;
+    }
+    @keyframes gachaBounce {
+        0% { transform: scale(0.3) rotateY(180deg); opacity: 0; }
+        50% { transform: scale(1.1) rotateY(0deg); opacity: 1; }
+        100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+    }
+    .gacha-light {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.25;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 0.2; transform: scale(1); }
+        50% { opacity: 0.35; transform: scale(1.1); }
+    }
+    .gacha-congrats {
+        text-align: center;
+        margin-top: 32px;
+        animation: slideUp 0.5s ease-out 0.3s both;
+    }
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .gacha-congrats h2 {
+        font-size: 28px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    .gacha-congrats p {
+        color: rgba(255,255,255,0.5);
+        font-size: 15px;
+        margin-bottom: 24px;
+    }
+    .gacha-close-btn {
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .gacha-close-btn:hover { transform: scale(1.05); }
+
+    /* 搜索框 */
+    .gacha-search {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 10px 16px 10px 42px;
+        color: rgba(255,255,255,0.9);
+        font-size: 14px;
+        width: 100%;
+        max-width: 360px;
+        transition: all 0.3s;
+    }
+    .gacha-search:focus {
+        outline: none;
+        border-color: rgba(102,126,234,0.4);
+        background: rgba(255,255,255,0.08);
+    }
+    .gacha-search::placeholder { color: rgba(255,255,255,0.3); }
+</style>
+
+<!-- ========== HERO ========== -->
+<section class="gacha-hero">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="container" style="position:relative; text-align:center;">
+        <div style="animation: slideUp 0.6s ease-out both;">
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 16px; background:rgba(102,126,234,0.12); border-radius:999px; color:#667eea; font-size:14px; font-weight:600; margin-bottom:20px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                知识卡牌收集
+            </div>
+            <h1 style="font-size:48px; font-weight:800; margin-bottom:12px;">
+                <span style="background:linear-gradient(135deg,#667eea,#a855f7,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-size:200% auto; animation: gradient 3s ease infinite;">知识图鉴</span>
+            </h1>
+            <style>@keyframes gradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }</style>
+            <p style="font-size:20px; color:rgba(255,255,255,0.45); margin-bottom:32px;">收集知识卡牌，解锁学习成就</p>
+
+            <!-- 收集进度 -->
+            <div class="progress-bar-wrap">
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+                    <span style="color:rgba(255,255,255,0.4);">收集进度</span>
+                    <span style="color:#667eea; font-weight:700;" th:text="${#lists.size(knowledgePoints)} + ' 张卡牌'">0 张卡牌</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" th:style="'width:' + ${knowledgePoints != null and !knowledgePoints.isEmpty() ? '100' : '0'} + '%'"></div>
+                </div>
+            </div>
+
+            <!-- 抽卡按钮 -->
+            <button class="gacha-btn" onclick="startGacha()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                抽取知识卡牌
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+            </button>
         </div>
     </div>
 </section>
 
 <!-- ========== FILTER BAR ========== -->
-<section class="filter-bar">
+<section class="rarity-filter-bar">
     <div class="container">
-        <div class="filter-bar-inner">
-            <!-- Search -->
-            <div class="search-wrapper" style="max-width:400px;">
-                <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="knowledgeSearch" class="search-bar" placeholder="搜索知识点..."
-                       oninput="filterKnowledge()"/>
+        <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px;">
+            <!-- 搜索 -->
+            <div style="position:relative; margin-right:12px;">
+                <svg style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,0.3);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="knowledgeSearch" class="gacha-search" placeholder="搜索知识点..." oninput="filterCards()"/>
             </div>
-
-            <!-- Category Filters -->
-            <div class="category-filters" id="categoryFilters">
-                <button class="category-filter-btn active" onclick="filterByCategory('', this)">全部</button>
-                <button th:each="cat : ${categories}" class="category-filter-btn" th:text="${cat}"
-                        th:onclick="'filterByCategory(\'' + ${cat} + '\', this)'">分类</button>
-            </div>
+            <button class="rarity-btn active" onclick="filterRarity('', this)">全部</button>
+            <button class="rarity-btn" onclick="filterRarity('common', this)">
+                <svg style="display:inline; vertical-align:-2px; margin-right:4px;" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>普通
+            </button>
+            <button class="rarity-btn" onclick="filterRarity('rare', this)">
+                <svg style="display:inline; vertical-align:-2px; margin-right:4px;" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>稀有
+            </button>
+            <button class="rarity-btn" onclick="filterRarity('epic', this)">
+                <svg style="display:inline; vertical-align:-2px; margin-right:4px;" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>史诗
+            </button>
+            <button class="rarity-btn" onclick="filterRarity('legendary', this)">
+                <svg style="display:inline; vertical-align:-2px; margin-right:4px;" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>传说
+            </button>
+            <button class="rarity-btn" onclick="resetFlips()" style="margin-left:8px;">
+                <svg style="display:inline; vertical-align:-2px; margin-right:4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>重置
+            </button>
         </div>
     </div>
 </section>
 
-<!-- ========== KNOWLEDGE GRID ========== -->
-<section class="py-12">
+<!-- ========== CARD GRID ========== -->
+<section style="padding:48px 0;">
     <div class="container">
-        <!-- 空状态 -->
-        <div th:if="${knowledgePoints == null or knowledgePoints.isEmpty()}" class="empty-state">
-            没有找到匹配的知识点
+        <div th:if="${knowledgePoints == null or knowledgePoints.isEmpty()}" style="text-align:center; padding:80px 20px;">
+            <div style="font-size:64px; margin-bottom:16px; opacity:0.3;">🃏</div>
+            <h3 style="color:rgba(255,255,255,0.5); font-size:18px;">暂无知识卡牌</h3>
+            <p style="color:rgba(255,255,255,0.3); font-size:14px; margin-top:8px;">创建知识点来丰富你的图鉴</p>
         </div>
 
-        <!-- 知识点卡片网格 -->
-        <div th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}" class="knowledge-grid">
-            <a th:each="kp, iter : ${knowledgePoints}"
-               th:href="@{/knowledge/{id}(id=${kp.id})}"
-               class="animate-slide-up"
-               th:style="'animation-delay:' + (${iter.index} * 0.1) + 's'"
-               style="text-decoration:none;color:inherit;display:block;"
-               th:attr="data-category=${kp.category}">
-                <div class="knowledge-card">
-                    <div class="knowledge-card-bar"></div>
-                    <div class="knowledge-card-body">
-                        <div class="knowledge-card-header">
-                            <h3 class="knowledge-card-title" th:text="${kp.title}">标题</h3>
-                            <span style="font-size:28px;">📚</span>
-                        </div>
-
-                        <span class="tag" style="margin-bottom:16px;" th:text="${kp.category}">分类</span>
-
-                        <p class="knowledge-card-desc" th:text="${kp.description}">描述信息...</p>
-
-                        <div class="knowledge-card-footer">
-                            <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                                <span>💬 <span th:text="${kp.questionCount != null ? kp.questionCount : 0}">0</span> 个问题</span>
+        <div th:if="${knowledgePoints != null and !knowledgePoints.isEmpty()}" class="card-grid" id="cardGrid">
+            <div th:each="kp, iter : ${knowledgePoints}"
+                 th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 20 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 10 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 5 ? 'rare' : 'common')))}"
+                 th:class="'card-perspective rarity-' + ${cardRarity}"
+                 th:attr="data-category=${kp.category}, data-rarity=${cardRarity}, data-title=${kp.title}, data-is-benghuai=${isBenghuai}"
+                 th:style="'animation: slideUp 0.5s ease-out ' + (${iter.index} * 0.05) + 's both;'"
+                 onclick="flipCard(this)">
+                <div class="card-inner">
+                    <!-- 正面 -->
+                    <div class="card-face card-front">
+                        <div class="card-glow"></div>
+                        <div class="card-top-bar"></div>
+                        <div class="card-content">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                                <span class="rarity-badge" th:with="isBenghuai=${kp.title != null and kp.title.contains('崩坏')}, cardRarity=${isBenghuai ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 20 ? 'legendary' : (kp.questionCount != null and kp.questionCount >= 10 ? 'epic' : (kp.questionCount != null and kp.questionCount >= 5 ? 'rare' : 'common')))}" th:text="${cardRarity == 'legendary' ? '传说' : (cardRarity == 'epic' ? '史诗' : (cardRarity == 'rare' ? '稀有' : '普通'))}">普通</span>
+                                <div style="display:flex; gap:2px;">
+                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 5) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 10) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                    <svg th:if="${(kp.questionCount != null and kp.questionCount >= 20) or (kp.title != null and kp.title.contains('崩坏'))}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                    <svg th:if="${kp.title != null and kp.title.contains('崩坏')}" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="color:inherit;" class="rarity-text"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+                                </div>
+                            </div>
+                            <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                                <div class="card-icon-box">
+                                    <span th:text="${kp.title != null and kp.title.contains('崩坏') ? '⚡' : (kp.category == 'Frontend' ? '⚛️' : (kp.category == 'Backend' ? '🖥️' : (kp.category == 'Database' ? '🗄️' : (kp.category == 'DevOps' ? '🐳' : (kp.category == 'Algorithm' ? '🧮' : (kp.category == 'Network' ? '🌐' : (kp.category == 'Security' ? '🛡️' : (kp.category == 'AI' ? '🤖' : (kp.category == 'Mobile' ? '📱' : (kp.category == 'Cloud' ? '☁️' : (kp.category == 'Testing' ? '🧪' : (kp.category == 'Design' ? '🎨' : '�'))))))))))))}">�</span>
+                                </div>
+                            </div>
+                            <div class="card-title" th:text="${kp.title}">标题</div>
+                            <div class="card-desc" th:text="${kp.description}">描述</div>
+                            <div class="card-meta">
+                                <span class="cat" th:text="${kp.category}">分类</span>
+                                <span class="level rarity-text" th:text="'Lv.' + ${kp.questionCount != null ? kp.questionCount : 0}">Lv.0</span>
                             </div>
                         </div>
                     </div>
+                    <!-- 背面 -->
+                    <div class="card-face card-back">
+                        <div class="card-back-content">
+                            <svg class="card-back-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                            <div class="card-back-title" th:text="${kp.title}">标题</div>
+                            <div class="card-back-desc" th:text="${kp.description}">描述</div>
+                            <div style="position:relative; font-size:14px; color:rgba(255,255,255,0.5); margin-bottom:16px;">
+                                <span th:text="${kp.questionCount != null ? kp.questionCount : 0}">0</span> 个相关问题
+                            </div>
+                            <a th:href="@{/knowledge/{id}(id=${kp.id})}" class="card-back-link" onclick="event.stopPropagation()">
+                                查看详情
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- ========== CTA ========== -->
-<section class="py-12" style="background:var(--bg-card-solid); border-top:1px solid var(--border-color);">
-    <div class="container text-center">
-        <h2 style="font-size:1.75rem; font-weight:bold; color:var(--text-primary); margin-bottom:12px;">想要分享你的知识？</h2>
-        <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1.125rem;">创建新的知识点，帮助更多的学习者</p>
-        <a href="/knowledge/create" class="btn btn-primary btn-lg" style="padding:14px 32px; border-radius:12px;">+ 创建知识点</a>
+<section style="padding:48px 0; background:rgba(15,15,26,0.6); border-top:1px solid rgba(255,255,255,0.06);">
+    <div class="container" style="text-align:center;">
+        <h2 style="font-size:28px; font-weight:800; color:rgba(255,255,255,0.95); margin-bottom:12px;">想要贡献新卡牌?</h2>
+        <p style="color:rgba(255,255,255,0.4); margin-bottom:28px; font-size:16px;">创建新的知识点，丰富卡牌图鉴</p>
+        <a href="/knowledge/create" style="display:inline-flex; align-items:center; gap:8px; padding:14px 32px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:14px; font-weight:700; font-size:16px; text-decoration:none; transition:all 0.3s; box-shadow:0 4px 20px rgba(102,126,234,0.3);"
+           onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 30px rgba(102,126,234,0.45)'"
+           onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 20px rgba(102,126,234,0.3)'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>
+            创建知识卡牌
+        </a>
     </div>
 </section>
 
-<script>
-    let currentCategory = '';
+<!-- ========== GACHA OVERLAY ========== -->
+<div class="gacha-overlay" id="gachaOverlay">
+    <div id="gachaBgImage" style="position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity 0.6s; pointer-events:none;"></div>
+    <div style="text-align:center; position:relative; z-index:1;">
+        <div style="position:relative;">
+            <div class="gacha-light" id="gachaLight"></div>
+            <div class="gacha-result-card" id="gachaCard">
+                <div style="position:absolute; top:0; left:0; right:0; height:4px;" id="gachaTopBar"></div>
+                <div style="height:100%; display:flex; flex-direction:column; padding:24px; background:rgba(15,15,26,0.97); border:2px solid rgba(255,255,255,0.1); border-radius:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <span id="gachaRarityBadge" style="font-size:13px; font-weight:700; padding:4px 14px; border-radius:999px; color:white;"></span>
+                        <div id="gachaStars" style="display:flex; gap:3px;"></div>
+                    </div>
+                    <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+                        <div id="gachaIconBox" style="width:88px; height:88px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:40px; animation: pulse 2s ease-in-out infinite;"></div>
+                    </div>
+                    <div style="margin-top:auto; text-align:center;">
+                        <h3 id="gachaTitle" style="font-size:22px; font-weight:800; color:rgba(255,255,255,0.95); margin-bottom:6px;"></h3>
+                        <p id="gachaCategory" style="font-size:14px; color:rgba(255,255,255,0.4);"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="gacha-congrats">
+            <h2 id="gachaCongratsText" style="background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">恭喜获得!</h2>
+            <p id="gachaCongratsDesc">你获得了一张知识卡牌</p>
+            <button class="gacha-close-btn" onclick="closeGacha()">确认</button>
+        </div>
+    </div>
+</div>
 
-    function filterByCategory(cat, btn) {
-        currentCategory = cat;
-        // Update active button
-        document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filterKnowledge();
+<script>
+    /* 翻转卡牌 */
+    function flipCard(el) {
+        var inner = el.querySelector('.card-inner');
+        if (inner) inner.classList.toggle('flipped');
     }
 
-    function filterKnowledge() {
-        const query = (document.getElementById('knowledgeSearch')?.value || '').toLowerCase();
-        const cards = document.querySelectorAll('.knowledge-grid a[data-category]');
-        cards.forEach(card => {
-            const category = card.getAttribute('data-category') || '';
-            const text = card.textContent?.toLowerCase() || '';
-            const matchCat = !currentCategory || category === currentCategory;
-            const matchSearch = !query || text.includes(query);
-            card.style.display = (matchCat && matchSearch) ? '' : 'none';
+    function resetFlips() {
+        document.querySelectorAll('.card-inner.flipped').forEach(function(c) {
+            c.classList.remove('flipped');
         });
+    }
+
+    /* 稀有度筛选 */
+    var currentRarity = '';
+    function filterRarity(rarity, btn) {
+        currentRarity = rarity;
+        document.querySelectorAll('.rarity-btn').forEach(function(b) {
+            b.className = 'rarity-btn';
+        });
+        if (rarity === '') btn.classList.add('active');
+        else if (rarity === 'rare') btn.classList.add('active-rare');
+        else if (rarity === 'epic') btn.classList.add('active-epic');
+        else if (rarity === 'legendary') btn.classList.add('active-legendary');
+        else btn.classList.add('active');
+        filterCards();
+    }
+
+    function filterCards() {
+        var query = (document.getElementById('knowledgeSearch').value || '').toLowerCase();
+        document.querySelectorAll('#cardGrid .card-perspective').forEach(function(card) {
+            var cardRarity = card.getAttribute('data-rarity') || '';
+            var title = (card.getAttribute('data-title') || '').toLowerCase();
+            var matchRarity = !currentRarity || cardRarity === currentRarity;
+            var matchSearch = !query || title.includes(query);
+            card.style.display = (matchRarity && matchSearch) ? '' : 'none';
+        });
+    }
+
+    /* 抽卡 */
+    var rarityNames = { common: '普通', rare: '稀有', epic: '史诗', legendary: '传说' };
+    var rarityColors = {
+        common: { gradient: 'linear-gradient(135deg,#94a3b8,#64748b)', text: '#94a3b8' },
+        rare: { gradient: 'linear-gradient(135deg,#3b82f6,#2563eb)', text: '#60a5fa' },
+        epic: { gradient: 'linear-gradient(135deg,#a855f7,#7c3aed)', text: '#c084fc' },
+        legendary: { gradient: 'linear-gradient(135deg,#f59e0b,#ef4444)', text: '#fbbf24' }
+    };
+
+    function startGacha() {
+        var cards = document.querySelectorAll('#cardGrid .card-perspective');
+        if (cards.length === 0) { alert('暂无卡牌可抽取!'); return; }
+        var idx = Math.floor(Math.random() * cards.length);
+        var chosen = cards[idx];
+        var rarity = chosen.getAttribute('data-rarity') || 'common';
+        var title = chosen.getAttribute('data-title') || '未知';
+        var isBenghuai = chosen.getAttribute('data-is-benghuai') === 'true';
+        var icon = chosen.querySelector('.card-icon-box span');
+        var iconText = icon ? icon.textContent : '�';
+        var config = rarityColors[rarity];
+
+        // 设置抽卡结果
+        document.getElementById('gachaTopBar').style.background = config.gradient;
+        document.getElementById('gachaRarityBadge').style.background = config.gradient;
+        document.getElementById('gachaRarityBadge').textContent = rarityNames[rarity];
+        document.getElementById('gachaIconBox').style.background = config.gradient;
+        document.getElementById('gachaIconBox').style.boxShadow = '0 8px 30px ' + config.text + '40';
+        document.getElementById('gachaIconBox').textContent = iconText;
+        document.getElementById('gachaTitle').textContent = title;
+        var catEl = chosen.querySelector('.card-meta .cat');
+        document.getElementById('gachaCategory').textContent = catEl ? catEl.textContent : '';
+        document.getElementById('gachaLight').style.background = config.gradient;
+        document.getElementById('gachaCongratsText').style.background = config.gradient;
+        document.getElementById('gachaCongratsText').style.webkitBackgroundClip = 'text';
+        document.getElementById('gachaCongratsText').style.webkitTextFillColor = 'transparent';
+        document.getElementById('gachaCongratsDesc').textContent = '你获得了一张' + rarityNames[rarity] + '知识卡牌';
+
+        // 崩坏卡牌特殊背景
+        var bgImage = document.getElementById('gachaBgImage');
+        if (isBenghuai) {
+            bgImage.style.backgroundImage = "url('/images/lgs.webp')";
+            bgImage.style.opacity = '0.35';
+        } else {
+            bgImage.style.backgroundImage = '';
+            bgImage.style.opacity = '0';
+        }
+
+        // 星星
+        var starsDiv = document.getElementById('gachaStars');
+        var starCount = rarity === 'legendary' ? 4 : (rarity === 'epic' ? 3 : (rarity === 'rare' ? 2 : 1));
+        starsDiv.innerHTML = '';
+        for (var i = 0; i < starCount; i++) {
+            starsDiv.innerHTML += '<svg width="16" height="16" viewBox="0 0 24 24" fill="' + config.text + '" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>';
+        }
+
+        // 重新触发动画
+        var resultCard = document.getElementById('gachaCard');
+        resultCard.style.animation = 'none';
+        resultCard.offsetHeight;
+        resultCard.style.animation = 'gachaBounce 0.6s ease-out';
+
+        document.getElementById('gachaOverlay').classList.add('active');
+    }
+
+    function closeGacha() {
+        document.getElementById('gachaOverlay').classList.remove('active');
+        // 清除崩坏背景
+        var bgImage = document.getElementById('gachaBgImage');
+        bgImage.style.opacity = '0';
+        setTimeout(function() { bgImage.style.backgroundImage = ''; }, 600);
     }
 </script>
 

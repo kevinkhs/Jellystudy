@@ -266,6 +266,12 @@
                            onmouseout="this.style.opacity='1'"
                            th:text="'→ ' + ${question.knowledgePointTitle}">知识点</a>
                     </div>
+
+                    <!-- You May Be Interested -->
+                    <div class="sidebar-card" id="recommended-section" style="display:none;">
+                        <h4>💡 你可能感兴趣</h4>
+                        <div id="recommended-questions" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
                 </div>
             </aside>
         </div>
@@ -274,11 +280,64 @@
 
 <!-- Store questionId for JavaScript -->
 <input type="hidden" id="questionIdHolder" th:value="${question.id}"/>
+<input type="hidden" id="kpIdHolder" th:value="${question.knowledgePointId}"/>
+<input type="hidden" id="kpTitleHolder" th:value="${question.knowledgePointTitle}"/>
 
 <script>
     /* 从DOM获取问题ID，避免th:inline与JS模板字符串冲突 */
     var questionId = document.getElementById('questionIdHolder').value;
     var isLiked = false;
+
+    /* 自动记录知识点点击 */
+    (function() {
+        var kpId = document.getElementById('kpIdHolder').value;
+        var kpTitle = document.getElementById('kpTitleHolder').value;
+        if (kpId && kpTitle) {
+            fetch('/assistant/record-kp-click', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'kpId=' + encodeURIComponent(kpId) + '&kpTitle=' + encodeURIComponent(kpTitle)
+            }).catch(function() {});
+        }
+    })();
+
+    /* 加载推荐问题 */
+    (function() {
+        fetch('/assistant/recommended-questions?limit=5&excludeQuestionId=' + questionId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success && data.recommendations && data.recommendations.length > 0) {
+                    var section = document.getElementById('recommended-section');
+                    var container = document.getElementById('recommended-questions');
+                    section.style.display = 'block';
+                    data.recommendations.forEach(function(q) {
+                        var item = document.createElement('a');
+                        item.href = '/question/' + q.id;
+                        item.style.cssText = 'display:block; padding:10px 12px; border-radius:8px; background:rgba(102,126,234,0.06); text-decoration:none; transition:all 0.2s; border-left:3px solid #667eea;';
+                        item.onmouseover = function() { this.style.background = 'rgba(102,126,234,0.12)'; this.style.transform = 'translateX(2px)'; };
+                        item.onmouseout = function() { this.style.background = 'rgba(102,126,234,0.06)'; this.style.transform = ''; };
+                        var title = document.createElement('div');
+                        title.style.cssText = 'font-size:13px; color:var(--text-primary); font-weight:500; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+                        title.textContent = q.title;
+                        var meta = document.createElement('div');
+                        meta.style.cssText = 'font-size:11px; color:var(--text-muted); display:flex; gap:8px; align-items:center;';
+                        var kpTag = document.createElement('span');
+                        kpTag.style.cssText = 'background:linear-gradient(135deg,rgba(102,126,234,0.15),rgba(118,75,162,0.15)); padding:1px 6px; border-radius:4px; color:#667eea; font-size:10px;';
+                        kpTag.textContent = q.knowledgePointTitle || '';
+                        meta.appendChild(kpTag);
+                        if (q.kpClickCount) {
+                            var heat = document.createElement('span');
+                            heat.textContent = '🔥' + q.kpClickCount;
+                            meta.appendChild(heat);
+                        }
+                        item.appendChild(title);
+                        item.appendChild(meta);
+                        container.appendChild(item);
+                    });
+                }
+            })
+            .catch(function() {});
+    })();
 
     /* 显示提示信息 */
     function showAlert(message, type) {
